@@ -1,0 +1,152 @@
+\chapter{First chapter}
+
+\section{Some section}
+
+
+
+
+\chapter{Some {\LaTeX} tip and tricks}
+
+\section{Producing PDF-documents}
+
+In some LaTeX distributions there exist a program called
+\texttt{pdflatex}. This program makes the production of good looking PDF 
+documents easy. Use it like you use \texttt{latex}. The difference is that
+this program does not produce a dvi-file, but instead makes a
+PDF-document directly. You should be careful with graphics, avoid
+using the pstricks package if you like to use \texttt{pdflatex} and also
+read the following section about image inclusion.
+
+If \texttt{pdflatex} of some reason does not work for you, you could use
+ps2pdf instead. It does not do as good job as pdflatex, and
+you have to be careful with the input flags, otherwise the
+PDF-document will look horrible, but you might have less trouble
+getting your latex documents though the compiler.
+
+\texttt{ps2pdf}, as the name says, converts PS-files to PDF-documents. So,
+first run latex, then dvips, and finaly ps2pdf. Notice the flags
+used below, they makes sure, the correct fonts are used. 
+\begin{verbatim}
+  > latex thesis.tex
+  > dvips -D 600 -Z -G0 -Ppdf thesis.dvi | thesis.ps
+  > ps2pdf thesis.ps
+\end{verbatim}
+
+\section{Including pictures}
+
+One of the pros of {\LaTeX} is that it produces very good looking
+documents, and therefore you also want the graphics to look nice. If
+you have found a program that can produce vector graphics, use
+it. It can often convert the pictures to the desired formats. 
+
+However, graphics can be a mess. Graphics and {\LaTeX} is no 
+exception. In this package, the \texttt{graphicx} package is used 
+as it provides some good functionality. Unfortunately {\LaTeX} is a bit 
+tricky about which graphics  formats to use. If you use 
+\texttt{pdflatex} PDF-files and PNG-files can be used but with 
+standard \texttt{latex} only EPS-files works (EPS stands for
+Encapsulated PostScript). Both EPS and PDF are a good format for 
+vector graphics but not so good for bitmaps. 
+
+So, if you both like to produce PS as well as PDF documents, you
+often need two versions of the pictures. This is probably not a
+problem when they are easily exported to the desired format in the
+image-software used (Illustrator, XFig etc.). 
+
+But how to make {\LaTeX} understand which picture to use? Well, 
+{\LaTeX} does this automagicaly. First we can tell {\LaTeX} where to 
+find our pictures,
+\begin{verbatim}
+    \graphicspath{{pictures/}}
+\end{verbatim} 
+This makes {\LaTeX} search the subfolder \texttt{./pictures/} for 
+pictures to include as well as the current folder.
+
+Secondly, use the \verb+\includegraphics+ command to include your 
+pictures. 
+
+\begin{verbatim}
+     \includegraphics[width=70mm]{complicated}
+\end{verbatim}
+
+Notice, that there are NO extension used on the name of the
+picture. This makes {\LaTeX} search for the right one, e.g., a PNG-
+file if it is a PDF document, otherwise an EPS-file.
+
+You can do all sorts of tricks with the include pictures, where
+scaling is the most common. Use 'scale', 'width', height' as in the
+example above.
+
+Also notice how the graphics package are included below if you are
+not using this package.
+
+\section{References}
+
+There is a lot to be said about references. However. I recommend
+that you find some information on how to use bibtex. It can be a bit
+tricky at first but worth it any time in the long run. However, a
+few things can be useful to notice.
+
+Authors should always be given with their full names, with the sir
+name last, e.g., Jan Pedher Johansson. If there are more then one
+author they should ALL be separated with an 'and', regardless if
+there are two, three or ten. This is all handeld and made correct
+by bibtex. 
+\begin{verbatim}
+     Bo Andersson and Anders Eriksson and Erik Bosson  
+\end{verbatim}
+
+Company names, abbreviations etc. can look funny using bibtex. Use 
+\{ \} if there are something you like to force.
+
+\begin{tabular}{ll}
+\texttt{\{Umeå Universitet\}} & (so it does not become U. Universitet) \\
+\texttt{\{HTML\}} & (so it does not become html or Html)
+\end{tabular}
+
+In the report document class references are not included in the
+table of contents. If you like it to be, use the trick described in
+the previous section.
+
+Remember to cite the literature and web-papers in an appropriate way. 
+There are many ways to do that, such as the following \cite{Lamp94} where 
+you can read about how to create a reference list in a {\LaTeX}\-report 
+using BibTex.
+
+\section{Other tricks}
+
+Notice the \texttt{tabular*} and the \texttt{tabularx} (requires the 
+tabularx package) environments. With these enviroments you can have tables 
+with a fixed width: 
+\begin{verbatim}
+     \begin{tabular*}{0.8\linewidth}{rll}
+     \end{tabular*}
+\end{verbatim}
+The \texttt{tabularx} has a great feature if you like a column that works
+like a p{<width>}-column but with a variable width. In this example
+the first column will stretch to use the full width of the table
+depending on the with of the two last columns. 
+\begin{verbatim}
+     \begin{tabularx}{0.8\linewidth}{Xll}
+     \end{tabularx}
+\end{verbatim}
+Notice that \texttt{tabularx} can not be used in your own defined
+environments. 
+
+
+In some large documents, it can look nice if the first pages, with
+the abstract, possible acknowledgment, table of contents, list of
+figures etc are numbered differently then the rest of the document,
+usually with roman numbers. Then the numbering restarts with the
+first chapter using normal numbers. To achieve this, put 
+\begin{verbatim}
+     \pagenumbering{roman}
+\end{verbatim}
+before the first page, then
+\begin{verbatim}
+     \cleardoublepage
+     \setcounter{page}{1}
+     \pagenumbering{arabic}
+     \chapter{Introduction}
+\end{verbatim}
+before the first chapter.

@@ -1,0 +1,48 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage{design/includes}
+
+\graphicspath{{assets/}}
+
+\pagestyle{empty}
+
+\begin{document}
+\includepdf[page={-},offset=25mm -20mm]{assets/front}
+%\maketitle
+%%%%%%%%%%%
+% Styling %
+%%%%%%%%%%%
+\pagestyle{fancy}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Abstract and acknowledgements %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\input{chapters/abstract}
+\cleardoublepage
+\input{chapters/acknowledgements}
+\cleardoublepage
+
+%%%%%%%%%%%%%%%%%%%%%
+% Table of contents %
+%%%%%%%%%%%%%%%%%%%%%
+\tableofcontents
+\cleardoublepage
+
+%%%%%%%%%%%%
+% Chapters %
+%%%%%%%%%%%%
+\input{chapters/index}
+
+%%%%%%%%%%%%%%
+% References %
+%%%%%%%%%%%%%%
+\addcontentsline{toc}{chapter}{\bibname}
+\bibliographystyle{plain}
+\bibliography{references}
+
+%%%%%%%%%%%%
+% Appendix %
+%%%%%%%%%%%%
+\input{chapters/appendix}
+
+\end{document}

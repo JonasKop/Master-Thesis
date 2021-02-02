@@ -1,0 +1,18 @@
+\chapter*{Acknowledgements}
+
+It is common to thank the supervisors and others who have contributed.
+The acknowledgent is usualy put first, or last, but can also be
+written as a section in the intruction. However, if it is put first
+or last as an own section, you propably don't want it to have an own
+chapter number. For this you can use the \verb+\chapter*+ command, i.e.,
+\begin{verbatim}
+  \chapter*{Acknowledgments}
+\end{verbatim}
+This will now not be included in the table of cotents. If you
+like to include it in the table of contents, you need to do this
+manualy as follows:
+\begin{verbatim}
+  \cleardoublepage   (or \clearpage)
+  \addcontentsline{toc}{chapter}{Acknowledgments}
+  \chapter*{Acknowledgments}
+\end{verbatim}
