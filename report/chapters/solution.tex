@@ -1,0 +1,54 @@
+\chapter{Solution Design}
+From the previous chapter, we know that it is possible to answer our research questions. To answer the questions, it is necessary to create a test suite that runs specific tests with a specified build-tool when correctly configured. This chapter aims to specify everything about how the test suite should function and how it should be used. It also aims to present a comparative specification for measuring the usability of the different container image build-tools.
+
+\section{Automation and Reproducibility}
+Many different cloud providers provide a managed Kubernetes platform. This thesis will use Amazon Web Services (AWS) and their Kubernetes distribution EKS because of its maturity and popularity. The choice should not have any impact on how the container image build-tools compare to each other. However, using a different cloud provider with differently configured nodes could impact the ran tests' speed.
+
+When performing scientific work, it is crucial that it is possible to reproduce the results. To make this possible, automation is a key component of this master thesis. It is possible by providing a script that builds and runs a single container image, automating the following things:
+\begin{itemize}
+    \item Setting up a Kubernetes cluster on AWS.
+    \item Installing all necessary applications to the cluster. 
+    \item Building and installing the test suite onto the cluster.
+\end{itemize}
+
+Terraform\footnote{HashiCorp. Terraform Website. \url{https://www.terraform.io/} Visited 2021-03-08} is an infrastructure as code (IaC) tool. It can provision all kinds of different components, including cloud infrastructure and their running applications. It is configured with a declarative configuration language called HasiCorp Configuration Language (HCL), which supports variables, iterations and custom executable shells. Terraform can be extended with many different custom providers allowing a declarative configuration of package managers, DNS services, cloud providers, among others. 
+
+Terraform is used to make the automation experience smoother. It uses the AWS provider\footnote{HashiCorp. AWS Provider. \url{https://registry.terraform.io/providers/hashicorp/aws} Visited 2021-03-08} for provisioning an EKS cluster and the Helmfile provider\footnote{Mumoshu. Helmfile Provider. \url{https://registry.terraform.io/providers/mumoshu/helmfile} Visited 2021-03-08} to provision the applications onto the cluster. 
+%* Use terraform with helm provider for automation.
+
+%* Create a program which takes a build-tool, Git repository, Git credentials, directory and number of times as an argument. 
+%* It will generate a Kubernetes deployment that tests the performance and caching of the build-tool.
+%* Create a test suite for Orchestrated OCI build-tools
+
+\section{OCI Build-tools}
+There are many different OCI container image build-tools, but a few popular ones are chosen to narrow the thesis scope down a bit. The chosen build-tools are Kaniko\cite{github_kaniko}, BuildKit\cite{github_buildkit}, Img\cite{github_img}, Buildah\cite{github_buildah} and Jib\cite{github_jib}. The first 4 are chosen because of their popularity and their presence in Akihiro Sudas\cite{oci_slides} presentation on the subject. Jib is chosen because it is backed by a large company (Google) and its different container image building approach.
+
+The test suite implementation is generic, meaning that it supports other build-tools as long as their specification is added to the suite's configuration. In the end, all build-tools do the same; they build and push an OCI container image, but they do it in different ways and with different features. 
+%* Decide which build-tools to use
+
+\subsection{Kaniko}
+\subsection{Buildah}
+\subsection{BuildKit}
+\subsection{Img}
+\subsection{Jib}
+\section{Build-tool Comparison}
+
+
+\section{High-level Architecture}
+%* Create a Dockerfile which copies large files
+%* Create a Dockerfile which run downloads
+%* Create a Dockerfile which compiles
+%* Create a Dockerfile which builds a large project + jib
+
+\section{Test suite}
+\subsection{Client}
+\subsection{Server}
+
+\section{Testing}
+\subsection{Performance, Caching and Cost}
+\subsection{Security}
+\subsection{Usability}
+
+\section{Configuration}
+privileges: https://github.com/moby/buildkit/tree/master/examples/kubernetes
+https://stackoverflow.com/questions/48872042/how-do-i-get-a-pods-millicore-cpu-usage-with-prometheus-in-kubernetes

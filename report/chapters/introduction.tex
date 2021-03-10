@@ -1,149 +1,86 @@
+\def\cloudhistory{https://www.dataversity.net/brief-history-cloud-computing/}
+
 \chapter{Introduction}
-\section{Background}
 %%%%%%%%%
 % Cloud %
 %%%%%%%%%
-
+In 2006 Amazon released its cloud platform AWS, which marks the start of large scale cloud computing. It allowed users to rent virtual machines to run internet-facing production services. Before the cloud became viable, companies needed to provide their infrastructure, making it harder and costlier to maintain and scale, especially for smaller players \cite{cost_analysis}. Over the years, more cloud platforms have emerged, cloud platforms has become more and more user-friendly. With new hosting solutions like the serverless design architecture\cite{serverless}, it is now possible to deploy an application directly on a cloud platform without requiring almost any operations knowledge.
 
 %%%%%%%%%%%%%%%%%%%%
 % Virtual Machines %
 %%%%%%%%%%%%%%%%%%%%
-
+However, cloud-based virtual machines are still relevant because of their broad use cases. Because they run a complete operating system\cite{vms_function}, they are configurable to run all possible applications and configurations. When running in a cloud platform, they also provide easy backup management and creation. However, virtual machines are not resource-efficient since they require virtualization of an entire operating system (OS) to function. It leads to slow creation, boot times and a significant performance overhead. 
 
 %%%%%%%%%%%%%%
 % Containers %
 %%%%%%%%%%%%%%
+Containers attempt to solve the problem of running an application differently. They do so by sharing their kernel with the host and only running the most necessary OS applications\cite{linux_containers}, resulting in a tiny footprint. An example is the alpine container image, a Linux container image that is less than 3MB
+\footnote{Alpine. Alpine Container Image. \url{https://www.alpinelinux.org/downloads/}. Visited 2021-02-11}. Compared to its virtual machine counterpart, which is around 130MB\footnote{Alpine. Alpine Virtual Machine Image. \url{https://hub.docker.com/_/alpine}. Visited 2021-02-11}. Containers allow fast creations, boot times and a minimal performance overhead. 
 
+%%%%%%%%%%%%%%%%%%%%
+% OCI & Kubernetes %
+%%%%%%%%%%%%%%%%%%%%
+In enters the Open Container Initiative(OCI), an open-source specification for Linux containers\cite{oci_spec}. It enables the usage of different container runtimes and container build-tools. Modern web services often require to scale onto multiple nodes to maintain adequate performance and availability. Container orchestrators solve this by managing the network and scheduling of the running services\footnote{Kubernetes. Kubernetes. \url{https://kubernetes.io/}. Visited 2021-02-11.}. From a users perspective, a container orchestrator makes a cluster of nodes seem like a single entity. One commonly used container orchestrator is called Kubernetes. It is an open-source declaration based container orchestrator which handles all possible use cases. 
 
 %%%%%%
 % CI %
 %%%%%%
+A popular workflow in modern development is Continuous Integration (CI)\cite{continuous_integration}. In CI, it is common to run automatic tests on all committed code. If the tests pass, the application is built and pushed it to a registry. Running the CI jobs in a container orchestrator is often preferable\cite{ci_containers} when running a container-based workflow. In such a workflow, the built application is a container image, built by an OCI build-tool. These build-tools do not usually run well in containers unless given extended privileges, suboptimal for security reasons. 
 
 
-\section{Aims}
-This paper aims to study how different container orchestrated OCI build-tools compare to each other. The build-tools in table \ref{tab:build_tools} will be compared with the aspects in table \ref{tab:aspects}. The build-tools were chosen by communicating with Omegapoint and by reading multiple sources \cite{build_compare} \cite{jib}.
+\section{Aims and Objectives}
+This thesis aims to investigate the field of container orchestrated OCI build-tools. It compares multiple different build-tools by performance, caching, cost, security and UX. They are evaluated by reading articles and papers and by running custom tests. The paper attempts to answer the following research questions:
 
-\section{Objectives}
+\begin{enumerate}
+    \item How securely can OCI container build-tools be run in a container orchestrator?
+    \item How can the performance of multiple orchestrated container build-tools be tested?
+    \item How do the most prominent build-tools compare from a performance and cache standpoint?
+    \item What is the economic cost of running build-tools in production?
+    \item How user-friendly is the most prominent OCI build-tools?
+    \item How can a testing suite for OCI build-tools be developed?
+\end{enumerate}
+
+\subsection{Limitation}
+This paper compares different orchestrated container build-tools. It will not compare how different container runtimes impact build-tools. One solution for running build-tools in a container is sysbox\cite{sysbox}. It is a container runtime which uses OS-virtualization to and userspace applications to make containers function as virtual machines. It allows software running in containers to run software like Systemd, Docker, and Kubernetes, which usually is impossible without changing some security features. 
+
+\section{Background}
+The case study for this thesis is Omegapoint. It is a Swedish IT consulting firm specialized in cybersecurity. They are moving a lot of their software infrastructure to the cloud and embracing a more container-based workflow. This thesis helps Omegapoint in deciding which OCI built-tool to use in container orchestrated environments. 
+
+Omegapoint is an advanced consulting partner of Amazon and therefore provides credentials to Amazon's cloud platform AWS, the platform used to run the tests. Omegapoint also provides a sounding board and professional consultation for this thesis. 
 
 \section{Risk Register}
-\begin{sidewaysfigure}[h!]
-    \centering
-    \includegraphics[width=\linewidth]{risks.png}
-    \caption{Risk register}
-    \label{fig:risk_register}
-\end{sidewaysfigure}
+When writing a thesis a lot of things can go wrong. It is therefore important to prevent and anticipate risks. Do this a risk register is created and available in table \ref{tab:risk_register}. It is used to mitigate risks and problems.
 
-\section{Gantt Chart}
-\begin{sidewaysfigure}[h!]
-    \centering
-    \includegraphics[width=\linewidth]{gantt.png}
-    \caption{Project time plan in the form of a Gantt chart}
-    \label{fig:gantt}
-\end{sidewaysfigure}
+\begin{landscape}
+\input{chapters/risk_register}
+\end{landscape}
+
+\section{Project Plan}
+This thesis is a large project which spans four months, to make the writing and development more manageable, a project plan used. It is available in the form of a Gantt chart which viewable in Figure \ref{fig:gantt_chart}.
+
+\input{chapters/gantt}
+
+\section{Thesis Structure}
+The thesis is structured to start with a literature study where scientific papers, articles and manuals are studied. It does so by describing the fields of cloud, containers, DevOps, Kubernetes, OCI build tools and usability analysis. The chapter also sums the earlier work, which influences the rest of the thesis. 
+
+It continues with a solution design which uses the conclusions of the literature study to create a solution. The chapter also specifies how to design different solution components. It displays the systems overall functionality and components on a high-level figure.
+
+The thesis continues with an implementation chapter of the designed solution. It discusses how each component work at a low-level and other specifications of the implementation. It continues into a result chapter which presents the testing results. The chapter also explains the results and how to read them. 
+
+An evaluation of the results is available in the next chapter. It discusses the impact of the results and concludes how the different build-tools performs. The chapter also recommends which build-tool that performs the best in the different test cases. The thesis ends with a conclusion section which discusses if and how the results are satisfactory. At last further work in the field is discussed, and a personal reflection of the project is presented. 
+% Literature study
+% Solution Design
+% Implementation
+% Results
+% Evaluation
+% Conclusion
+
+
+% include what will be in the different chapters
+
 
 %\def\cloudperks{\footnote{Salesforce UK. What are the Advantages of Cloud Computing? 10 Reasons to Move to the Cloud. Read 2021-01-18. \url{https://www.salesforce.com/uk/blog/2015/11/why-move-to-the-cloud-10-benefits-of-cloud-computing.html}}}
 %\def\cloudhistory{\footnote{IBM Cloud Team. IBM. A Brief History of Cloud Computing. Read 2021-01-18. \url{https://www.ibm.com/cloud/blog/cloud-computing-history}}}
 %\def\rhcontainers{\footnote{Red Hat. What's a Linux container?. Read 2021-01-18. \url{https://www.redhat.com/en/topics/containers/whats-a-linux-container}}}
 %\def\ocicontainers{\footnote{OCI. About the Open Container Initiative. Read 2021-01-18. \url{https://opencontainers.org/about/overview/}}}
 %\def\whatkubernetes{\footnote{Kubernetes. What is Kubernetes?. Read 2021-01-18. \url{https://kubernetes.io/docs/concepts/overview/what-is-kubernetes/}}}
-%
-%\chapter{Introduction}
-%When computing was new, all computations were local. Today, computations are done remotely. The cloud allows companies of all sizes to use resilient and highly available solutions\cloudperks. Different cloud providers usually provide similar features and user experiences. Therefore, it is possible to use the right platform for the right job. Cloud services provide easily accessible virtual machines. which are scriptable and easily configurable to make software deployment easier. Virtual Machines provide easy startup, accessibility and backup management. However, they are stateful, making them almost as hard as their predecessor, bare-metal machines, to manage if scaled. Virtual machines also have a noticeable performance overhead since their host operating system has to emulate the hardware and run an entire operating system around all applications.
-%
-%To solve these problem stateless containers were developed. Containers function by sharing their kernel with the host machine and only running the most necessary software\rhcontainers. Containers also make it possible to run reproducible code and allows the tested software (and its dependencies) to be used in production. One of the most popular types of containers is OCI\ocicontainers (Open Container Initiative) containers. It is a specification of stateless Linux containers that states their interface; this allows the development of multiple runtimes and build-tools. A container orchestrator is often used to connect containers running on different machines to each other. They have dramatically simplified the deployment and scaling of distributed software. The most common orchestrator is called Kubernetes\whatkubernetes and allows a cluster of machines, from a users perspective, to function as a single entity. Kubernetes is also easily extended with custom software like logging, security scanning and backups.  
-%
-%A common approach when developing software is Continuous Integration (CI) and Continuous Deployment (CD). It is a workflow which runs pipelines on each commit to a VCS for automatic testing, linting and more. It allows for seamless integration of tested code into a repository and then automatically deploying it to production. In these pipelines, containers are often built and pushed to a registry. There exists a lot of different container build-tools which has different advantages and disadvantages. It is often desirable to run pipelines within Kubernetes to make use of its great ecosystem. However, container build-tools are often supposed to run directly on an operating system. That is sub-optimal in a Kubernetes environment due to its insecure nature when allowing access to the host node. 
-%
-%\section{Aim}
-%This paper aims to study how different container orchestrated OCI build-tools compare to each other. The build-tools in table \ref{tab:build_tools} will be compared with the aspects in table \ref{tab:aspects}. The build-tools were chosen by communicating with Omegapoint and by reading multiple sources \cite{build_compare} \cite{jib}.
-%
-%% build an evaluation framework for measureing the effectiveness of oci build-tools.
-%
-%% objectives
-%% what are the most appropriate metrics to compare oci build tools
-%% what are the different environments? security?
-%% can i create a recommendation system?
-%
-%\begin{table}[h!]
-%    \centering
-%    \begin{tabular}{l|l}
-%        \textbf{Build tool} & \textbf{Version} \\
-%        \hline
-%        Kaniko & 1.3.0 \\
-%        \hline
-%        Buildah & 1.19.2 \\
-%        \hline
-%        Img & 0.5.11 \\
-%        \hline
-%        BuildKit & 0.8.1 \\
-%        \hline
-%        Google Jib & 0.17.0
-%    \end{tabular}
-%    \caption{Build-tools}
-%    \label{tab:build_tools}
-%\end{table}
-%
-%\begin{table}[h!]
-%    \centering
-%    \begin{tabular}{l|l}
-%        \textbf{Aspect} & \textbf{Description} \\
-%        \hline
-%        Security & What are the known security issues?\\
-%        \hline
-%        Performance & How performant are the different build-tools?\\
-%        \hline
-%        Cache & How efficient are the build-tools at handling cache?\\
-%        \hline
-%        Usability & How good is the user experience of the build tool?\\
-%        \hline
-%        Basic Features & Are all expected basic features supported?\\
-%        \hline
-%        Cost & What is the cost of using the build tool? \\
-%    \end{tabular}
-%    \caption{Comparison aspects}
-%    \label{tab:aspects}
-%\end{table}
-%
-%\section{Earlier Work and study}
-%To better understand the field, earlier research will be studied. It is done to lay a basis for the project and better strengthen the decisions made when developing and performing the tests. Much of the scientific work done in the cloud field is not published in scientific journals but on company pages. Therefore scientific papers, papers from large companies and papers written by experts on the subjects will be read and utilized. The examined subjects will be:
-%
-%\begin{enumerate}
-%    \item Cloud
-%    \item OCI Containers
-%    \item Container security
-%    \item CI/CD Pipelines
-%    \item Kubernetes
-%\end{enumerate}
-%
-%\section{Mentorship}
-%Paul Townend at Umeå University will be the mentor for this project. We will have a meeting every week and continuously communicate with email. The master thesis is written with the help of the company Omegapoint, and we will use Slack for internal communication and have a meeting as often as we desire. 
-%
-%\begin{table}[h!]
-%    \centering
-%    \begin{tabular}{l|l|l}
-%        \textbf{Mentor} & \textbf{Name} & \textbf{Email} \\
-%        \hline
-%        University & Paul townend & \href{mailto:paul.townend@umu.se}{paul.townend@umu.se} \\
-%        \hline
-%        Omegapoint & Mattias Persson & \href{mailto:mattias.persson@omegapoint.se}{mattias.persson@omegapoint.se} \\
-%                   & Anders Sigfridsson & \href{mailto:anders.sigfridsson@omegapoint.se}{anders.sigfridsson@omegapoint.se} \\    
-%    \end{tabular}
-%    \caption{Mentors and contact information}
-%    \label{tab:mentors}
-%\end{table}
-%
-%\section{Risk Register}
-%\begin{sidewaysfigure}[h!]
-%    \centering
-%    \includegraphics[width=\linewidth]{risks.png}
-%    \caption{Risk register}
-%    \label{fig:risk_register}
-%\end{sidewaysfigure}
-%
-%\section{Gantt Chart}
-%\begin{sidewaysfigure}[h!]
-%    \centering
-%    \includegraphics[width=\linewidth]{gantt.png}
-%    \caption{Project time plan in the form of a Gantt chart}
-%    \label{fig:gantt}
-%\end{sidewaysfigure}

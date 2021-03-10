@@ -1,0 +1,34 @@
+\begin{table}[]
+    \begin{tabular}{c|p{0.35\linewidth}|>{\centering}p{0.085\linewidth}|>{\centering}p{0.085\linewidth}|p{0.35\linewidth}}
+    \textbf{\#} & \textbf{Risk}                               & \textbf{Likelihood \\ (L/M/H)} & \textbf{Impact\\(L/M/H)} & \textbf{Mitigation}                                         \\
+    \hline
+    1           & Configuring privileges is more time consuming than planned.     & L                           & H                       & Question supervisors for consultation.                                          \\ 
+    \hline
+    2           & Data corruption occurs.                                         & L                           & H                       & Use GIT for version control and backups                                         \\
+    \hline
+    3           & The specified build-tools cannot run in containers.             & L                           & H                       & When specifying build-tools, check if they can run within a container.          \\
+    \hline
+    4           & Getting access to a cloud platform is tougher than expected.    & L                           & H                       & Purchase it.                                                                    \\
+    \hline
+    5           & A supervisor becomes unresponsive.                              & L                           & L                       & The project is relatively self contained so local resources suffice.            \\
+    \hline
+    6           & The project get behind schedule.                                & L                           & H                       & Plan to finish earlier and work hard in the beginning.                          \\
+    \hline
+    7           & Finding published scientific papers is problematic.             & M                           & M                       & Identify other sources, including online technical reports and articles.        \\
+    \hline
+    8           & A large container base open source java project is not easily available. & L                  & L                       & Ask supervisors for help. If they cannot help, skip the real world test. \\
+    \hline
+    9           & Managing state with Terraform cloud is working as expected.     & L                           & L                       & Switch from remote state to local state.                                        \\
+    \hline
+    10          & The AWS container registry is slow.                             & L                           & M                       & Install the Harbor container registry onto the cluster to get a local one.      \\
+    \hline
+    11          & The pull limit on docker hub is reached.                        & L                           & L                       & Purchase docker premium.                                                        \\
+    \hline
+    12          & I get ill                                                       & L                           & H                       & Ask for project extension from the university supervisor                        \\
+    \hline
+    13          & If the university supervisor gets unresponsive.                 & L                           & H                       & Talk to the course coordinator to get a new one                                             
+    \end{tabular}
+    \centering
+    \caption{Risk register}
+    \label{tab:risk_register}
+\end{table}

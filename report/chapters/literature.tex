@@ -1,0 +1,175 @@
+\chapter{Literature study}
+Computer science is a vast field with much information available from different sources. In this chapter, the thesis examines the domain to make sure that the research question is viable. It also does so to make sure that the design of the implementation is substantiated. In modern web services, the cloud plays a central role. It is a well-researched area, but much material is not published in research papers because of the areas ever-changing state. Instead, software documentation and company websites are often the primary places for finding information. It can render some of the sources of this paper invalid in case that a Git Repository or a web page is moved or deleted. 
+
+\section{Cloud} % 2 pages
+% 0.25 - Introduction
+The cloud is an essential part of a modern software stack. Over the last few years, it has grown in popularity, and 2020 cloud computing had global revenue of almost 400 billion USD\footnote{Statista. Cloud computing market revenues worldwide from 2015 to 2020. \url{https://www.statista.com/statistics/270811/cloud-computing-revenue-worldwide-since-2008/} Visited 2021-02-17.}. It has become a cost-effective on-demand service where users can run internet-facing software\cite{cloud_info}. It is no longer necessary for companies to manage their infrastructure but instead pay a cloud provider for their services. This change allows for cheap horizontal scaling capabilities and easy use of services such as hardware load balancing and DNS management.
+\subsection{Definitions and background}
+% 0.50 - What really is it?
+In the sky, a cloud consists of a large number of small drops of water. On their own, each drop of water is insignificant, but they produce something, rain, when they come large enough. The same goes for the ''cloud`` in Cloud Computing. One small server cannot do much, but when multiple servers work together, they create a ''cloud``\cite{whatiscloud}. The cloud refers to a network and its infrastructure, whether that is a private or a public one. A cloud is most often available on the internet in some sort. 
+
+Public clouds are reachable by users through their web browsers. Users hire the infrastructure or service that they desire and only pay for the duration they use them, often reducing operating costs. There are public cloud companies of all sizes, and some common ones are Amazon AWS, Google Cloud and Microsoft Azure. Since an external cloud provider manages public clouds, the user must trust that the provider has taken sufficient security measures to prevent intruders. Some companies, therefore, require a private alternative. 
+
+Private clouds are both managed and used by an organization. It allows a company to have full control over both the hardware and software infrastructure. As they often are called, private clouds or on-premise clouds are by design limited to specific users, i.e. all developers and operations people at a company. Therefore, this cloud solution is often desirable by banking organizations and other companies where security is the number one priority.
+
+\subsection{Common architectures}
+% 0.50 - Which are the different ways of deploying code
+Cloud platforms usually provide three primary architectures, Infrastructure as a service (IaaS), Platform as a Service (PaaS), and Software as a service (SaaS)\cite{architectures}. They all solve different problems and gives the user a different amount of control of the system. 
+
+Infrastructure as a Service gives the user the most control over a system. It allows a user to create virtual or physical servers, load balancers, networks, among others. The user can then install whatever operating system they desire onto those servers and tweak them to their liking. An IaaS user is responsible for managing updates, taking security measures and maintaining the servers. 
+
+In Platform as a Service, the platform provides the underlying infrastructure and application requirements to the user. The user does not need to update the platform but only install its application and configure it to its needs. An example of PaaS is a managed Postgres database. The provider manages the application and its infrastructure, and the user only configures it to meet its needs. The platform often also manages scaling, security and updates. 
+
+Software as a Service is a way of distributing software where the user does not need to care about the underlying infrastructure or requirements. A user only configures the platform with their desired application, and the platform manages it by itself. In this architecture, the user cannot configure networking and scaling to the same extent as in IaaS since this SaaS handles this automatically. 
+
+IaaS, PaaS and SaaS all have their place in the market, but they solve different problems. IaaS gives full control, PaaS considerable control and SaaS smaller control of a system. Which one to use depends on the context. 
+% SAAS, PAAS IAAS
+\subsection{Virtual Machines}
+One of the critical components of cloud computing is virtualization. It allows multiple operating systems (OS) to run simultaneously on the same server by emulating the hardware of a computer\cite{vm_arch}. The specifications of virtual machines (VM) hardware is configurable, allowing different VM:s on the same host to perform better or worse. Virtual machines are often the base of modern cloud deployments because of their built-in host isolation. Virtual networks are also configurable, allowing VM:s on the same or different hosts to communicate. Since virtual machines are running in software, their creation and management can easily be automated, commonly used in cloud environments. VM:s need to virtualize an entire OS and its hardware, and because of that, they have a slow startup time and a significant runtime overhead. Since virtualization is slow, a solution to this is using containers, which do not virtualize nearly as much. 
+% 0.25 - What are virtual machines
+\subsection{Containers}
+Containers do not use full operating system virtualization but hypervisor virtualization\cite{what_containers}. It does not need to virtualize the hardware and all syscalls since it shares its kernel with the host machine. This functionality avoids a lot of the performance issues with VM:s. It enables almost instant startup times but can come at a security cost. If the container hypervisor has security or isolation issues, it is possible to break free and access the host machine. By default, a container does not have full privileges to the host, limiting the attack surface. Containers are also often not run as the root user, further preventing these security issues. Many container implementations specify stateless containers, allowing a different workflow where the state usually is managed externally or by an orchestrator. The statelessness and low overhead of containers make it possible to develop and test the same code run in production. 
+%Reproducability: https://www.researchgate.net/publication/303515069_Using_Docker_Containers_to_Improve_Reproducibility_in_Software_and_Web_Engineering_Research
+% 0.25 - What are containers
+\subsection{Growth in popularity of containers}
+One of the most common formats of containers is OCI\cite{oci_spec}. It specifies a public interface of how containers should function. It has allowed the creation of custom container runtimes and built tools. A common approach to container technology is to create one container per application, effectively creating a sandboxing environment. The approach makes scaling individual services easy. According to the Cloud Native Computing Foundations (CNCF) report 2019\cite{cncf_report}, running containers in production have increased in popularity. By CNCF:s measures, more than 80\% use containers in development, testing, staging and production environments. From these statistics, it looks like containers are something that is going to be used frequently in the future. 
+
+
+
+% 0.25 - How popular are containers
+%LXC to Docker to Kubernetes: https://ieeexplore-ieee-org.proxy.ub.umu.se/document/7036275
+
+
+\section{Kubernetes} % 2 pages
+The previous section clearly shows that the cloud is a popular and flexible alternative when running internet-facing software. It also presents that OCI Containers are often preferable to virtual machines when developing applications because of their low overhead, statelessness and easily scriptable interfaces. When these container workloads scale and more and more components need to interact, many problems can occur. To mitigate these issues, it is often preferable to use a container orchestrator\cite{redhat_orchestrator}. That is a tool that automates deployment, management, scaling and networking of containers. The most popular one is called Kubernetes (K8s)\cite{orchestor_popularity}.
+%Kubernetes CICD trend report 2019: https://retest.de/wp-content/uploads/2020/02/dzone-kubernetes-cicd-trendreport-2019.pdf
+%Container usability: https://www.researchgate.net/publication/335175559_On_container_usability_in_large-scale_edge_distributed_system
+% 0.25 - Cloud is a big deal, and containers are becoming really popular. So what kind of tooling are people using with containers?
+\subsection{Definitions and background}
+Kubernetes was initially designed and developed by engineers at Google\cite{redhat_orchestrator} and is now an open-source project available at Github\cite{github_kubernetes}. Kubernetes integrates with the cloud provider it runs on, allowing automatic issuing of hardware load balancers and persistent storage. It does so by using a declarative configuration\cite{k8s_docs} where YAML is used and applied to create resources. The orchestrator has some predefined API resources, but it is also extendable with custom resources. 
+
+Kubernetes smallest component is a Pod. A pod is a schedulable piece of software that contains at least one container, and its definition configures the pods' environment and status. To schedule a pod, Kubernetes uses a deployment or a stateful set. A deployment is a configuration that defines how many of a specific pod to run and what resources they should have. Kubernetes job is to make sure that what is defined is the current state of the system, and if one pod goes down, Kubernetes brings it back up. A stateful set works similarly but with a few key differences. Stateful sets have predictable names and start in order where deployments start simultaneously. Both can handle data persistency by mounting persistent volumes.
+
+The horizontal auto scaler resource automatically scales a deployment to a specified amount of nodes in an interval. It does so by parsing the resource limit requirements and deciding if it should scale up or down. When running applications, it is essential to configure them differently in different environments. In a Kubernetes environment, config maps and their encrypted relative secrets manage all pod configurations. They can be mounted as files or environment variables onto pods to dynamically provide a pod with its desired configuration. 
+
+In Kubernetes, services exist to allow pods to communicate with each other. They are load balancers that load balances incoming connection onto a deployment or stateful set. There are also headless services that do not have an IP-address but allows communication with specific pods. To make a workload reachable from the internet, Kubernetes uses Ingresses or hardware load balancers. An ingress in Kubernetes typically manages DNS services and SSL certificates. It also performs SSL termination and proxies the request to a specific service.   
+
+To isolate different applications, Kubernetes uses namespaces. Together with correctly configured services accounts, it is possible to limit deployments communication to a specific namespace or specific resources.
+
+Kubernetes is extendable with third party application which integrates log management and parsing, resource monitoring, security scanning, to name a few. All of this allows Kubernetes to manage high performance and high availability applications. 
+% 0.50 - What really is it?
+\subsection{Security}
+It is essential to configure firewalls to make the cluster nodes ports used for internal communication not publicly available on the internet\cite{k8s_docs}. Even after that, there are many security issues when running Kubernetes clusters, but these issues are often easy to mitigate if configured correctly. Kubernetes is only as secure as its container runtime and the privileges of its running containers. It is therefore essential to only give the containers their necessary privileges. When a pod has extended privileges that allows more syscalls, many security issues arise. It is also vital to run pods as ordinary users instead of root to limit a hijacked container's attack surface. Pod isolation is achievable by giving each deployment a service account that limits the pods' communication to a specific namespace or specific resources. Sometimes these security issues cannot be easily prevented because of a specific workload that requires some extra privileges. 
+%Privileges: https://www.nccgroup.com/globalassets/our-research/us/whitepapers/2016/june/abusing-privileged-and-unprivileged-linux-containers.pdf
+% 0.25 - What security features are there
+\subsection{Performance}
+Kubernetes performance can be hard to reason around since it depends on a lot of different factors\cite{k8s_docs}. One of those factors is the container runtime. Different runtimes give different performance results in different use cases. Espe, Anshul, Podolskiy and Gerndt\cite{container_runtimes} showed that CRI-O with runc performed best for most use cases, but containerd with runc performed better for IO intensive workflows. Another performance factor is the number of cluster nodes and their hardware specifications. Kubernetes extensibility enables many different monitoring tools to be used. Two of those tools are Metrics Server and Prometheus. Metrics Server is a scalable service that scrapes container metrics. It is useful for autoscaling applications. Prometheus\footnote{Prometheus. Prometheus (Website). \url{https://prometheus.io/}. Visited 2021-02-11.} is a generic scraper configurable to scrape cluster metrics (IO, CPU, RAM) and application-specific metrics via custom integrations. 
+%Performance Analysis Between RunC and Kata Container Runtime: https://ieeexplore-ieee-org.proxy.ub.umu.se/document/9198653
+%Performance evaluation of runtimes: https://www.researchgate.net/publication/341483813_Performance_Evaluation_of_Container_Runtimes
+%IO performance: https://ieeexplore-ieee-org.proxy.ub.umu.se/document/9202316
+% 0.25 - How is performance handled
+\subsection{Caching}
+By default, Kubernetes runs stateless containers\cite{k8s_docs}, meaning the containers' content is not at all stored after exit. Storing data can be done in many different ways. It is either saved to a mounted disk, pushed to an external registry or written to STDOUT. Kubernetes caches the running container images locally. If it should pull a new image, Kubernetes first checks if the image is present. If not, it downloads the missing layers. 
+%Cache performance: https://web.uettaxila.edu.pk/CMS/AUT2012/ectCARbs/notes%5CLecture-13-Notes.pdf
+% 0.25 - How can we leverage cache
+
+\section{DevOps} % 1.5 pages
+Because of Kubernetes large and complicated ecosystem, inexperienced users can find it very difficult to deploy applications. To help with this, users can utilize a framework called DevOps. It is an automation approach that integrates the developers into the operations workload\cite{redhat_devops}. It represents a set of ideas where a software feature goes from development to testing to production environments, often somewhat automatically. The approach often encourages declarative configuration, making it a good fit for Kubernetes. One of DevOps' key benefits is Continuous Integration (CI) and Continuous Deployment (CD) pipelines. CI/CD pipelines can run code analysis tools, tests or custom integrations automatically on each commit.
+% 0.25 - We can see that k8s has lots of deployment challenges, DevOps is a framework that can be utilised to help with this.
+\subsection{Definitions and background}
+The waterfall model is an approach to project management, where each task is performed in sequence\cite{waterfall_agile}. First, the requirements are specified, then a solution is then designed, then implemented, then verified, and last maintenance is performed. It was long the prominent model for project management in software development, but due to its inability for quick changes, many companies decided to phase it out. A new, more flexible project management model came along called agile development. It is an iterative approach that focuses on swift deliveries and quick actions on new changes. It almost revolutionized the software industry, and ''agile``, ''scrum``, and ''kanban`` quickly became buzzwords. 
+
+With this new project management model, the way software was developed changed. Previously, the software was developed by developers and later maintained by operations personnel. This new method with quick iterative cycles and deliveries with small intervals required that the software developers know operations management, and so was DevOps born. DevOps has promoted new testing and development environments, like containerization and automatic testing, by including the developers in the operations work.
+
+% waterfall
+% 0.50 - What really is it?
+\subsection{CICD}
+Continuous Integration and Continuous Delivery are two core DevOps concepts\cite{redhat_cicd} that focus on automation. It attempts to solve issues that may arrive when multiple developers work on the same project. CICD pipelines allow developers to run functions on their codebase on each commit automatically. These functions can be linting, formatting, testing or whatever the environment requires. These pipelines are often well integrated with the Version Control System (VCS), allowing workflows where only correct code can be submitted to a specific staging or release branch. 
+
+Continuous Integration focuses on verifying that the code is correct before merging it to the main development branch, and because of its simplicity, it is usually implemented at least to some extent in many projects. On the other hand, continuous delivery often requires more work to implement because it needs to be integrated with the production environment, which may be tedious depending on the production environment. Laukkanen, Itkonen and Lassenius\cite{cd_problems} performed a literature study in 2016, where they concluded that implementing Continuous Delivery could be troublesome problems with the system and build design. They do however not discuss if the issues are present in container based systems, indicating that it is a somewhat unexplored subject. 
+
+%Problems with CD https://www.sciencedirect.com/science/article/pii/S0950584916302324
+% 0.50 - What is CICD?
+\subsection{CICD in Kubernetes}
+We now know that CI/CD can improve the developer experience and ensure good software quality. It can, however, be a tedious task. To lessen the burden, a container orchestrator like Kubernetes can be used, which allows the DevOps workflow to be integrated with the testing, staging and production environment. It allows pipeline jobs to be run inside Kubernetes, effectively enabling the testing and staging environment to be identical to the production environment. It also allows the CI/CD jobs to leverage Kubernetes large ecosystem with security scanning, logging and metrics. In Kubernetes, there is tooling that simplifies the deployment stage by integrating into the Kubernetes cluster, enabling easy automation and scripts.
+
+Using Kubernetes for the pipeline jobs, it is possible to have a declarative configuration that is as identical as desired in development, testing, staging and production. That is one reason why Kubernetes is part of Cloud Native Computing Foundations (CNCF) trail map to cloud-native software\footnote{CNCF. Introducing the Cloud Native Landscape 2.0 - interactive edition. \url{https://www.cncf.io/blog/2018/03/08/introducing-the-cloud-native-landscape-2-0-interactive-edition/} Visited 2021-02-28.}. 
+% Automation
+% 0.25 - How can we leverage Kubernetes for our CICD pipelines, best practices
+
+
+\section{Build-tools} % 2.5 pages
+From the previous sections, we know that using the containers running in the cloud is prefered because it lessens the operations burden and makes maintaining a reproducible environment easier. We also know that using CI/CD pipelines can help with ensuring code quality and software security. In the CI/CD pipelines, it is common to build software that is pushed to a registry. In a container landscape, the software is built within containers and pushed to a container registry. There exists a lot of different built-tools for this job that functions with different aspects in mind. Some focus on performance and some on security. Running build-tools inside an unprivileged container may also be troublesome. 
+%Something: https://sc20.supercomputing.org/proceedings/sotp/sotp_files/sotp107s2-file1.pdf
+% 0.25 - As can be seen, DevOps methods are potentially very useful for k8s deployments. There are a number of tools to help with builds
+\subsection{Definitions and background}
+An OCI container image build-tool is a piece of software that builds OCI containers. They are built according to the OCI Image specification\footnote{Open Container Initiative. Image Format Specification. \url{https://github.com/opencontainers/image-spec/blob/master/spec.md} Visited 2021-02-28}, and as long as the specification is followed, it enables inoperability. An OCI build-tool builds images by creating a manifest containing metadata about the image content and dependencies with references to the built layers. It also contains a configuration that includes information such as application arguments and environments. To run the container from its image, its manifest is used to reference and putting together the different layers. The configuration is used to configure the function of a specific instance of the container image. 
+
+When running OCI build-tools inside containers, they often require more privileges then what is by default given to a container. Giving extended privileges to a Linux container may increase the attack surface in case of a compromised container. Therefore, it is important to give containers only the necessary privileges and take precautionary actions if more privileges are required. Some build-tools require running as the root user to get access to all devices and syscalls, which may also be a security issue in a compromised container. 
+% 0.50 - What really is it?
+\subsection{Popular build-tools}
+When many people think of building OCI containers, they think of Docker. It is an application that builds and runs OCI containers, but there exist many alternatives. One of the docker benefits is the use of Dockerfiles, small scripts that create a container image from specific instructions. Dockerfiles can extend on other previously built images and even build an image in multiple stages, allowing a small final image footprint. The author of BuildKit, Akihiro Suda, held a presentation about next-generation container image build-tools at the Open Source Summit in Japan 2018\cite{oci_slides}. There he discussed other build-tools that work as a drop-in replacement for Docker and that they solve many issues with concurrency and running inside a container. 
+
+BuildKit\cite{github_buildkit}, Img\cite{github_img}, Buildah\cite{github_buildah} and Kaniko\cite{github_kaniko} are alternatives to Docker, which can build OCI container images. They all support running in daemonless mode inside containers, allowing them to be easily orchestrated by Kubernetes. BuildKit is an upstream of Docker, which allows full concurrency on multi-stage builds. Img is a downstream of BuildKit, allowing similar functionality. Buildah is a Red Hat alternative that is by default integrated with Podman. It is the recommended OCI container system on Red Hat platforms like Centos and Fedora. Kaniko is a build-tool built by developers at Google, which requires no extended privileges. All of these alternatives work with Dockerfiles, making them an easy alternative to Docker. Jib\cite{github_jib} is a build-tool that builds containers differently by integrating with the build manifest config. It is built for the JVM platform and only works with toolings like Maven or Gradle. 
+
+% 0.25 - Which build tools are there
+%\subsection{Feature comparison}
+% 0.50 - Compare build-tools
+\subsection{Challenges with measuring cost}
+Using cloud services can often be beneficial from a cost perspective\cite{cloud_economics}, and by running build-tools in the cloud is possible to take those benefits. A lot of the tooling in the container space is free and Open Source, and so is the most common container image build-tools we discussed in the previous section. What costs about these build-tools is their resource usage (CPU and memory) and the costs of running the container registries used for caching purposes. 
+
+Kubernetes controls resource scheduling by assigning each running container some CPU units, where 1 CPU unit usually is equivalent to 1 vCPU on a cloud platform. It is also possible to provide fractions of CPU units to containers. With Kubernetes monitoring tools, it is possible to view the memory and CPU units used over a process's lifetime. It makes it possible to create a formula depending on the resources used and their cost on a cloud provider. 
+%Economics: https://ieeexplore-ieee-org.proxy.ub.umu.se/document/7057586
+% 0.50 - How do we measure cost
+
+\subsection{Challenges with usability}
+container image build-tools are usually interacted with from a command-line interface (CLI). A CLI is often run inside a shell in a terminal emulator and is configured with environment variables, config files, parameters or flags.  With these configuration options, CLIs allow for easy scripting and automation when run inside a shell, like SH, BASH or ZSH. Because that CLIs usually lacks a graphical user interface, they require good examples, documentation or self-documenting commands. If it is not existent, it can make the CLI impossible to use unless the source code is read. 
+
+Since container image build-tools usually are CLI-based, their user experience (UX) may be completely different because of CLIs hard requirement of documentation or self-documenting. Some build-tools are configured in the software projects configuration, allowing the build-tool to rely more on the projects user experience instead of creating its own. A good user experience can be essential in spreading the popularity of specific software. It is crucial in the open-source world since more popularity often means more revenue, allowing more room for improving the software. 
+% 0.50 - How do we measure usability
+
+
+\section{Usability} % 2 pages
+A good user experience is a core concept of many successful products. If it is lacking, it will require much time spent by the user in learning how to use the product. We know from the previous section that a container image build-tool is a simple yet complex piece of software that can improve the experience when testing and deploying services. A container image build-tools performance and functionality may not matter if a user does not know how to use it. This section will try to understand how to examine the UX of CLIs and their impact. 
+% 0.25 - There are lots of issues with usability and its measurement for these build tools. The next section discusses these.
+\subsection{Definitions and background}
+When computers and the internet rose in popularity in the 1990s and early 2000s, the focus was often on developing the critical functions and not the UX. More focus has moved to develop beautiful, smart and interactive user interfaces (UI) in the last decade. This is especially apparent with modern web applications and their cross-platform functionality. Much work has been done, focusing on the user experience of graphical user interfaces (GUI) like those on webpages, phones and computer apps. These applications are both used by professionals and amateurs, allowing them to have a broad use case. They also have wide use cases where good GUIs usually are self-explanatory. 
+
+In the world of CLIs, the experience is usually different. They are not as self-explanatory as GUIs because of their text-only interface, making it even more important to follow the target system's default design guidelines. There also exists very little research on the subject of the user experience of CLIs. Most studies focus on comparing GUIs to CLIs but not som much on sane CLI defaults. UX is critical, but an application can have a great user experience but may still not be useful if crucial features are lacking.
+% 0.25 - Why is usability important for configuration files?
+\subsection{How do we measure usability?}
+Usability can be measured in many different ways. One approach which is commonly used for UX testing is conforming user tests \cite{user_tests}. In user tests, a research group is asked questions about the specific subjects or asked to perform specific operations with one or multiple applications. Since CLIs usually lack a GUI, they rely a lot on a users familiarity with the specific types of software. A user test may therefore entail much bias, rendering the test results useless. 
+
+Another way of analysing the usability of CLIs is not to specifically analyse their UX but to compare them to each other with a comparison table. Such a table clearly specifies questions such as if the CLIs requires any specific options or lack any crucial features, requiring a custom user implementation. 
+
+% 0.50 - How do we measure it?
+
+\section{Research questions} % 2 pages
+We now know that cloud computing is often preferable to other ways of deploying software because of its ease of use and competitive pricing. When deploying software, containers are useful for both developments, testing and deployment. However, they do have some issues with scaling and networking, and it is therefore often good to use a container orchestrator which solves these issues. Kubernetes is a popular open-source container orchestrator which allows for custom integrations and extensions. It makes it possible to easily run namespace isolated custom workloads with log and security analysis. Because of Kubernetes declarative approach, it is a good fit for DevOps. In Kubernetes, it is possible to run CI/CD pipelines that utilises Kubernetes grand ecosystem. 
+
+It is common to build and push software in CI/CD pipelines. If the services are container-based, this may be troublesome because container image build-tools sometimes require running with additional privileges or, as the root user, inflicting security issues. Configuring these privileges is done differently on different platforms, but CLIs often print cryptic error messages if they miss the correct privileges. The build-tools usually supports similar core features, building and pushing an OCI container image. If a build-tool lacks a feature, such as remote caching, it requires the user to implement it. This can impact the usability of a build-tool and make it harder to use for first time users. 
+% 0.25 
+% Based on this information, we can identify a number of important concerns that we wish to address
+% Based on all the above, what are the questions you're going to address. And relate them to the above.
+
+% EXAMPLE:
+% 1) Howsecuriely can OCI container build tools be run?  We address this question due to the issues rasied in section 2.4.4 and 2.4.3.
+
+\subsection{Security}
+We now know how to answer the first research question, "How securely can OCI container build-tools be run in a container orchestrator?". To answer the question, we can compare the container image build-tools required privileges and discuss their security impact. Another security issues of containers are which user they run as. If a compromised container runs the root user, other security issues may arise. 
+% 0.25 - 
+\subsection{Performance}
+We also know how to answer the second and third research questions, "How can the performance of multiple orchestrated container build-tools be tested?" and "How do the most prominent build-tools compare from a performance and cache standpoint?". Kubernetes provides great resource control where CPU and memory usage can be displayed. This can be done with scrapers such as Prometheus or metrics-server. The caching performance can be tested by analysing the cached images layers size and their impact on build-speed. 
+% 0.25 - 
+\subsection{Cost}
+It is also possible now to answer the fourth research question, "What is the economic cost of running build-tools in production?". Since Kubernetes can give us hard metrics on the amount of CPU and memory used for a specific workload, we can classify that data towards the pricing of CPU and memory of cloud platforms. Another economic cost is caching, which uses persistent storage. Its impact on cost can also be analysed by checking the cloud platforms pricing of block storage. 
+% 0.25 - 
+\subsection{User-friendly}
+The fifth research question, "How user-friendly is the most prominent OCI build-tools?" can also be answered. To avoid the bias and classification difficulty of user studies, another approach can be used. A specification table can be created, which tests hard data surrounding the usability of container image build-tools. This table can then be classified into a score that allows us to conclude how usable the build-tools are. 
+% 0.25 - 
+\subsection{Testing suite}
+The sixth and last research question, "How can a testing suite for OCI build-tools be developed?" can now also be answered. We can create a client-server application with a web interface that runs workloads on Kubernetes. It can test a specific container image build-tool by running a deployment in the cluster. It can then analyse the results by checking with Kubernetes metrics software and displaying its GUI results. For easy usage in multiple different clusters, the testing suite can be configured with a configuration file. The suite can also output its testing data to allow for easy plotting of graphs. 
+% 0.25 - 
+\subsection{Conclusion}
+This chapter has been very long, and it has discussed everything ranging from cloud-computing to containers to DevOps to usability testing. From the literature study, it is clear that we now know how to answer the research questions defined in the introduction. This information will be used in the later chapters to argue why specific methods have been chosen and why the tests have been designed the way they had. 
+% 0.50 - 
