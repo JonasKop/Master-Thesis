@@ -1,0 +1,69 @@
+workdir: /workspace
+repositories:
+  - name: copy
+    url: https://github.com/JonasKop/Registry-Cleaner
+    dir: /
+  - name: jib-project
+    url: https://github.com/JonasKop/Master-Thesis
+    dir: /test-suite/server
+    jib: true
+buildTools:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    securityContext:
+      userID: 1
+    command:
+      - /kaniko/executor
+      - --no-push
+      - --context
+      - ${workdir}
+      - --dockerfile
+      - ${workdir}/Dockerfile
+  #      - "--cache-repo={{workdir}}/{{-2.name}}"
+  #      - "--cache=true"
+  - name: buildah
+    image: quay.io/buildah/stable
+    securityContext:
+      privileged: true
+    command:
+      - /bin/buildah
+      - bud
+      - -t
+      - ${name}
+      - ${workdir}
+  #      - buildah push
+  - name: buildkit
+    image: moby/buildkit:master-rootless
+    securityContext:
+      seccomp: unconfined
+      apparmor: unconfined
+      userID: 1000
+    env:
+      BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
+    command:
+      - /usr/bin/buildctl-daemonless.sh
+      - build
+      - --frontend
+      - dockerfile.v0
+      - --local
+      - context=${workdir}
+      - --local
+      - dockerfile=${workdir}
+  - name: img
+    image: r.j3ss.co/img
+    securityContext:
+      seccomp: unconfined
+      apparmor: unconfined
+      userID: 1000
+    command:
+      - /usr/bin/img
+      - build
+      - -t
+      - ${name}
+      - ${workdir}
+  - name: jib
+    image: gradle:jdk15
+    command:
+      - gradle
+      - jibBuildTar
+      - --no-daemon

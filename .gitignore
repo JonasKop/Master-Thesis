@@ -1,0 +1,10 @@
+.DS_Store
+node_modules/
+tools/
+build/
+.gradle/
+.idea/
+gradle/
+gradlew
+gradlew.bat
+*.iml
