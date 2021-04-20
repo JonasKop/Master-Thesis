@@ -1,25 +1,15 @@
 package com.jonassjodin.cbtt
 
-import com.charleskorn.kaml.Yaml
-import com.jonassjodin.cbtt.config.Config
-import com.jonassjodin.cbtt.config.readConfig
-import com.jonassjodin.cbtt.k8s.test.Job
-import com.jonassjodin.cbtt.routes.registerConfigRoutes
-import com.jonassjodin.cbtt.worker.Worker
+import com.jonassjodin.cbtt.k8s.K8s
+import com.jonassjodin.cbtt.routes.registerRoutes
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.serialization.*
+import io.ktor.websocket.*
 
 fun main(args: Array<String>) {
-    val conf = readConfig()
-    println(Yaml.default.encodeToString(Config.serializer(), conf))
-//    K8s.syncRepos()
-    val job = Job(conf.repositories[0], conf.buildTools[4])
-    val w = Worker()
-    w.addJob(job)
-    w.run()
-
-//    io.ktor.server.netty.EngineMain.main(args)
+    K8s.syncRepos()
+    io.ktor.server.netty.EngineMain.main(args)
 }
 
 /**
@@ -32,6 +22,8 @@ fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {
         json()
     }
-    registerConfigRoutes()
+    install(WebSockets)
+
+    registerRoutes()
 }
 

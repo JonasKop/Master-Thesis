@@ -2,10 +2,6 @@ package com.jonassjodin.cbtt.config
 
 import kotlinx.serialization.Serializable
 
-enum class BuildSystem {
-    gradle
-}
-
 @Serializable
 data class Repository(
     val name: String,
@@ -23,10 +19,23 @@ data class SecurityContext(
 )
 
 @Serializable
+data class Command(
+    val push: String? = null,
+    val noPush: String? = null
+)
+
+@Serializable
+data class CommandTypes(
+    val setup: String,
+    val cache: Command? = null,
+    val noCache: Command? = null
+)
+
+@Serializable
 data class BuildTool(
     val name: String,
     val image: String,
-    val command: List<String>,
+    val command: CommandTypes,
     val securityContext: SecurityContext? = null,
     val env: Map<String, String>? = null
 )

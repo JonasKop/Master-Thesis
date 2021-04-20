@@ -1,37 +1,37 @@
 workdir: /workspace
 repositories:
+  - name: quick
+    url: https://github.com/JonasKop/TestRepo
+    dir: /quick
+  - name: slow
+    url: https://github.com/JonasKop/TestRepo
+    dir: /slow
   - name: copy
     url: https://github.com/JonasKop/Registry-Cleaner
     dir: /
-  - name: jib-project
-    url: https://github.com/JonasKop/Master-Thesis
-    dir: /test-suite/server
-    jib: true
 buildTools:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
-    securityContext:
-      userID: 1
     command:
-      - /kaniko/executor
-      - --no-push
-      - --context
-      - ${workdir}
-      - --dockerfile
-      - ${workdir}/Dockerfile
-  #      - "--cache-repo={{workdir}}/{{-2.name}}"
-  #      - "--cache=true"
+      setup: echo '{"auths":{"${registry_url}":{"username":"${registry_username}","password":"${registry_password}"}}}' >/kaniko/.docker/config.json
+      cache:
+        push: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --destination=${image}
+        noPush: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --no-push
+      noCache:
+        push: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=false --destination=${image}
+        noPush: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=false --no-push
   - name: buildah
     image: quay.io/buildah/stable
     securityContext:
       privileged: true
     command:
-      - /bin/buildah
-      - bud
-      - -t
-      - ${name}
-      - ${workdir}
-  #      - buildah push
+      setup: buildah login --username ${registry_username} --password ${registry_password} ${registry_url}
+      noCache:
+        noPush: buildah bud -t ${image} ${workdir}
+        push: buildah bud -t ${image} ${workdir} && buildah push ${image}
+      cache:
+        noPush: buildah pull ${image} && buildah bud --layers -t ${image} ${workdir}
+        push: buildah pull ${image} && buildah bud --layers -t ${image} ${workdir} && buildah push ${image}
   - name: buildkit
     image: moby/buildkit:master-rootless
     securityContext:
@@ -41,14 +41,13 @@ buildTools:
     env:
       BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
     command:
-      - /usr/bin/buildctl-daemonless.sh
-      - build
-      - --frontend
-      - dockerfile.v0
-      - --local
-      - context=${workdir}
-      - --local
-      - dockerfile=${workdir}
+      setup: mkdir -p ~/.docker && echo '{"auths":{"${registry_url}":{"username":"${registry_username}","password":"${registry_password}"}}}' > ~/.docker/config.json
+      noCache:
+        noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir}
+        push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --output type=image,name=${image},push=true
+      cache:
+        noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=registry,ref=${image}
+        push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --output type=image,name=${image},push=true --export-cache type=inline --import-cache type=registry,ref=${image}
   - name: img
     image: r.j3ss.co/img
     securityContext:
@@ -56,14 +55,17 @@ buildTools:
       apparmor: unconfined
       userID: 1000
     command:
-      - /usr/bin/img
-      - build
-      - -t
-      - ${name}
-      - ${workdir}
-  - name: jib
-    image: gradle:jdk15
-    command:
-      - gradle
-      - jibBuildTar
-      - --no-daemon
+      setup: echo ${registry_password} | img login --username ${registry_username} --password-stdin ${registry_url}
+      noCache:
+        noPush: img build --no-cache -t ${image} ${workdir}
+        push: img build --no-cache -t ${image} ${workdir} && img push ${image}
+      cache:
+        noPush: img build --cache-from ${image} -t ${image} ${workdir}
+        push: img build --cache-from ${image} -t ${image} ${workdir} && img push ${image}
+#  - name: "jib"
+#    image: "gradle:jdk15"
+#    command:
+#      - "sh"
+#      - "-c"
+#      - "mkdir /app && cp -rf ${workdir} /app && ls -la /app/repo && cd /app/repo && gradle\
+#    \ jibBuildTar --no-daemon"

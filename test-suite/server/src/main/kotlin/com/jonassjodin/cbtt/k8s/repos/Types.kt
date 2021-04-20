@@ -6,31 +6,31 @@ import com.jonassjodin.cbtt.config.Repository
 import com.jonassjodin.cbtt.lib.hash
 import io.kubernetes.client.common.KubernetesObject
 import io.kubernetes.client.custom.Quantity
-import io.kubernetes.client.openapi.apis.BatchV1Api
 import io.kubernetes.client.openapi.apis.CoreV1Api
 import io.kubernetes.client.openapi.models.*
 
+fun nameAndChecksum(repo: Repository) = Pair(genRepoName(repo), checksum(repo))
 fun nameAndChecksum(o: KubernetesObject) = Pair(o.metadata!!.name!!, o.metadata!!.annotations!!["checksum"]!!)
 
+fun genRepoName(repo: Repository) = "cbtt-repo-${repo.name}"
+
+fun checksum(repo: Repository) = hash(Yaml.default.encodeToString(Repository.serializer(), repo))
+
 private fun createMetadata(repo: Repository): V1ObjectMeta {
-    val hashValue = hash(Yaml.default.encodeToString(Repository.serializer(), repo))
     val metadata = V1ObjectMeta()
-    metadata.name = "cbtt-repo-${repo.name}"
-    metadata.annotations = mapOf(Pair("checksum", hashValue))
+    metadata.name = genRepoName(repo)
+    metadata.annotations = mapOf(Pair("checksum", checksum(repo)))
     return metadata
 }
 
-class RepoPVC(repo: Repository, private val namespace: String) {
-    val k8sPvc = V1PersistentVolumeClaim()
+object RepoPVC {
+    fun apply(repo: Repository, namespace: String) {
+        val pvc = V1PersistentVolumeClaim()
+        pvc.metadata = createMetadata(repo)
+        pvc.spec = createSpec()
 
-    init {
-        k8sPvc.metadata = createMetadata(repo)
-        k8sPvc.spec = createSpec()
-    }
-
-    fun apply() {
         val api = CoreV1Api()
-        api.createNamespacedPersistentVolumeClaim(namespace, k8sPvc, null, null, null)
+        api.createNamespacedPersistentVolumeClaim(namespace, pvc, null, null, null)
     }
 
     private fun createSpec(): V1PersistentVolumeClaimSpec {
@@ -42,56 +42,50 @@ class RepoPVC(repo: Repository, private val namespace: String) {
     }
 }
 
-class RepoJob(private val config: Config, private val repo: Repository, private val namespace: String) {
-    val k8sJob = V1Job()
-
-    init {
-        k8sJob.metadata = createMetadata(repo)
-        k8sJob.spec = createSpec()
+object RepoPod {
+    fun apply(config: Config, repo: Repository, namespace: String) {
+        val pod = V1Pod()
+        pod.metadata = createMetadata(repo)
+        pod.spec = createSpec(repo, config)
+        val api = CoreV1Api()
+        api.createNamespacedPod(namespace, pod, null, null, null)
     }
 
-    fun apply() {
-        val api = BatchV1Api()
-        api.createNamespacedJob(namespace, k8sJob, null, null, null)
-    }
-
-    private fun createSpec(): V1JobSpec {
+    private fun createSpec(repo: Repository, config: Config): V1PodSpec {
         val vol = V1Volume()
-        vol.name = "cbtt-repo-${repo.name}"
+        vol.name = genRepoName(repo)
         vol.persistentVolumeClaim = V1PersistentVolumeClaimVolumeSource()
-        vol.persistentVolumeClaim!!.claimName = "cbtt-repo-${repo.name}"
+        vol.persistentVolumeClaim!!.claimName = genRepoName(repo)
 
-        val spec = V1JobSpec()
-        spec.backoffLimit = 1
-        spec.template = V1PodTemplateSpec()
-        spec.template!!.spec = V1PodSpec()
-        spec.template!!.spec!!.containers = createSpecContainers()
-        spec.template!!.spec!!.volumes = listOf(vol)
-        spec.template!!.spec!!.restartPolicy = "Never"
+        val spec = V1PodSpec()
+        spec.containers = createSpecContainers(repo, config)
+        spec.volumes = listOf(vol)
+        spec.restartPolicy = "Never"
         return spec
     }
 
-    private fun createSpecContainers(): List<V1Container> {
+    private fun createSpecContainers(repo: Repository, config: Config): List<V1Container> {
         val volMount = V1VolumeMount()
         volMount.mountPath = config.workdir
-        volMount.name = "cbtt-repo-${repo.name}"
-        volMount.readOnly = false //TODO: CHANGE DIS
+        volMount.name = genRepoName(repo)
+        volMount.readOnly = false
 
         val containers = listOf(V1Container())
-        containers[0].name = "cbtt-repo-${repo.name}"
+        containers[0].name = genRepoName(repo)
         containers[0].image = "alpine:3.13.2"
-        containers[0].command = listOf("sh", "-c", createCommand())
+        containers[0].command = listOf("sh", "-c", createCommand(repo, config))
         containers[0].volumeMounts = listOf(volMount)
         return containers
     }
 
-    private fun createCommand() = listOf(
-        "apk add git rsync",
-        "git clone ${repo.url} repo",
-        "echo ${config.workdir}",
-        "ls -la ${config.workdir}",
-        "mv repo${repo.dir} ${config.workdir}",
-//        "cd repo && rsync -a ${repo.dir}/ ${config.workdir}/repo/",
-    ).joinToString(" && ")
+    private fun createCommand(repo: Repository, config: Config): String =
+        listOf(
+            "apk add git rsync",
+            "git clone ${repo.url} repo",
+            "mkdir ${config.workdir}/repo",
+            "cd repo",
+            "rsync -a ./${repo.dir}/ ${config.workdir}/repo/",
+        ).joinToString(" && ")
+
 }
 
