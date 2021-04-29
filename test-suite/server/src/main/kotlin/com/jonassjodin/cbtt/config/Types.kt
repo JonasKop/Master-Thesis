@@ -41,7 +41,20 @@ data class BuildTool(
 )
 
 @Serializable
+data class Limit(
+    val memory: String,
+    val cpu: String
+)
+
+@Serializable
+data class ResourceRequirements(
+    val limits: Limit,
+    val requests: Limit
+)
+
+@Serializable
 data class Config(
+    val resources: ResourceRequirements,
     val workdir: String,
     val repositories: List<Repository>,
     val buildTools: List<BuildTool>

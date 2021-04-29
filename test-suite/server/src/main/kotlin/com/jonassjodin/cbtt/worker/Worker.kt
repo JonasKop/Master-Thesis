@@ -2,10 +2,10 @@ package com.jonassjodin.cbtt.worker
 
 import com.jonassjodin.cbtt.k8s.K8s
 import com.jonassjodin.cbtt.k8s.test.Job
-import io.kubernetes.client.openapi.models.V1Pod
+import io.fabric8.kubernetes.api.model.Pod
 import java.util.concurrent.LinkedBlockingQueue
 
-fun podStatus(pod: V1Pod): String {
+fun podStatus(pod: Pod): String {
     val s = pod.status?.containerStatuses?.map {
         val state = it.state
         when {
@@ -30,7 +30,7 @@ object Worker {
 
     fun addJob(job: Job) = queue.put(job)
 
-    private fun podIsNotCompleted(pod: V1Pod): Boolean =
+    private fun podIsNotCompleted(pod: Pod): Boolean =
         pod.status?.containerStatuses?.any { it.state == null || it.state?.terminated == null } ?: true
 
     private fun waitForAllCompleted() {

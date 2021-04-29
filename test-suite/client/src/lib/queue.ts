@@ -1,8 +1,8 @@
-import {createContext, useEffect, useState} from 'react';
-import {Config, Job} from './types';
-import {useBoolean} from '@chakra-ui/react';
-import api from './api';
+import { createContext, useEffect, useState } from 'react';
+import { Config, Job } from './types';
+import { useBoolean } from '@chakra-ui/react';
 import yaml from 'js-yaml';
+import { getConfig } from './api';
 
 export interface Pod {
   name: string;
@@ -31,11 +31,11 @@ export function useAppContext(): [AppContext, boolean] {
   const [state, setState] = useState<State | null>(null);
   const [configFile, setConfigFile] = useState<string>('');
   const [config, setConfig] = useState<Config>({} as Config);
-  const [isLoading, {off}] = useBoolean(true);
+  const [isLoading, { off }] = useBoolean(true);
 
   useEffect(() => {
     (async () => {
-      const conf = await api.getConfig();
+      const conf = await getConfig();
       setConfigFile(conf);
       setConfig(yaml.load(conf) as Config);
       off();

@@ -2,70 +2,56 @@ package com.jonassjodin.cbtt.k8s.repos
 
 import com.jonassjodin.cbtt.config.Repository
 import com.jonassjodin.cbtt.config.readConfig
-import io.kubernetes.client.openapi.apis.CoreV1Api
-import io.kubernetes.client.openapi.models.*
+import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
+import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.client.KubernetesClient
 
-object Repos {
+
+class Repos {
     private val config = readConfig()
 
-    fun syncRepos(namespace: String) {
-        val pvcs = getPVCs(namespace)
-        val jobs = getPods(namespace)
+    fun syncRepos(client: KubernetesClient) {
+        val pvcs = getPVCs(client)
+        val jobs = getPods(client)
+
         val pvcsInfo = pvcs.map { nameAndChecksum(it) }
         println(pvcsInfo)
         val jobsInfo = jobs.map { nameAndChecksum(it) }
 
         val newPvcs = config.repositories
         val newJobs = config.repositories
-        val newPvcsInfo = newPvcs.map(::nameAndChecksum)
-        val newJobsInfo = newJobs.map(::nameAndChecksum)
+        val newPvcsInfo = newPvcs.map { nameAndChecksum(it, config.workdir) }
+        val newJobsInfo = newJobs.map { nameAndChecksum(it, config.workdir) }
 
         if (pvcsInfo.containsAll(newPvcsInfo) && jobsInfo.containsAll(newJobsInfo)) return
 
-        jobsInfo.forEach { deletePod(it.first, namespace) }
-        pvcsInfo.forEach { deletePVC(it.first, namespace) }
-        config.repositories.forEach { createRepo(it, namespace) }
+        jobsInfo.forEach { deletePod(it.first, client) }
+        pvcsInfo.forEach { deletePVC(it.first, client) }
+        config.repositories.forEach { createRepo(it, client) }
     }
 
-    private fun getPVCs(namespace: String): List<V1PersistentVolumeClaim> {
-        val api = CoreV1Api()
-        val pvcs = api.listNamespacedPersistentVolumeClaim(
-            namespace,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null
-        )
+    private fun getPVCs(client: KubernetesClient): List<PersistentVolumeClaim> {
+        val pvcs = client.persistentVolumeClaims().list()
         return pvcs.items.filter { it.metadata?.name?.startsWith("cbtt-repo") == true }
     }
 
-    fun getPods(namespace: String): List<V1Pod> {
-        val api = CoreV1Api()
-        val pods = api.listNamespacedPod(namespace, null, null, null, null, null, null, null, null, null, null)
+    fun getPods(client: KubernetesClient): List<Pod> {
+        val pods = client.pods().list()
         return pods.items.filter { it.metadata?.name?.startsWith("cbtt-repo") == true }
     }
 
-
-    private fun deletePVC(name: String, namespace: String) {
+    private fun deletePVC(name: String, client: KubernetesClient) {
         println("Deleting repository pvc $name")
-        val coreApi = CoreV1Api()
-        coreApi.deleteNamespacedPersistentVolumeClaim(name, namespace, null, null, null, null, null, null)
+        client.persistentVolumeClaims().withName(name).delete()
     }
 
-    private fun deletePod(name: String, namespace: String) {
+    private fun deletePod(name: String, client: KubernetesClient) {
         println("Deleting repository pod $name")
-        val coreApi = CoreV1Api()
-        coreApi.deleteNamespacedPod(name, namespace, null, null, null, null, "Foreground", null)
+        client.pods().withName(name).delete()
     }
 
-    private fun createRepo(repo: Repository, namespace: String) {
-        RepoPVC.apply(repo, namespace)
-        RepoPod.apply(config, repo, namespace)
+    private fun createRepo(repo: Repository, client: KubernetesClient) {
+        client.pods().create(RepoPod(repo))
+        client.persistentVolumeClaims().create(RepoPVC(repo))
     }
 }

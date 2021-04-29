@@ -2,35 +2,32 @@ package com.jonassjodin.cbtt.k8s
 
 import com.jonassjodin.cbtt.k8s.repos.Repos
 import com.jonassjodin.cbtt.k8s.test.*
-import io.kubernetes.client.openapi.ApiClient
-import io.kubernetes.client.openapi.Configuration
+import io.fabric8.kubernetes.api.model.Pod
+import io.fabric8.kubernetes.client.ConfigBuilder
+import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import kotlinx.coroutines.channels.Channel
-import io.kubernetes.client.util.Config as K8sConfig
 import java.io.File
 import java.io.FileNotFoundException
 
 object K8s {
     private val namespace = getRunningNamespace()
+    private val client = DefaultKubernetesClient().inNamespace(namespace)
 
-    init {
-        val client: ApiClient = K8sConfig.defaultClient()
-        client.isDebugging = true
-        Configuration.setDefaultApiClient(client)
-    }
+    fun deletePod(name: String): Boolean = client.pods().withName(name).delete()
 
-    fun deletePod(name: String) = Pods.delete(name, namespace)
+    fun deletePVC(name: String): Boolean = client.persistentVolumeClaims().withName(name).delete()
 
-    fun listPods() = Pods.list(namespace)
+    fun listPods(): List<Pod> = client.pods().list().items
 
-    fun listenToLogs(name: String, channel: Channel<String>) = MyPodLogs.list(namespace, name, channel)
+    fun listenToLogs(name: String, channel: Channel<String>) = MyPodLogs.list(client, name, channel)
 
-    fun listRepos() = Repos.getPods(namespace)
+    fun listRepos() = Repos().getPods(client)
 
-    fun syncRepos() = Repos.syncRepos(namespace)
+    fun syncRepos() = Repos().syncRepos(client)
 
-    fun listTestJobs() = TestJobs.list(namespace)
+    fun listTestJobs() = client.pods().list().items.filter { it.metadata?.name?.startsWith("cbtt-test") == true }
 
-    fun runJob(job: Job) = Test.apply(job, namespace)
+    fun runJob(job: Job): Pod = client.pods().create(Test(job))
 
     private fun getRunningNamespace(): String {
         val configFile = "/var/run/secrets/kubernetes.io/serviceaccount/namespace"

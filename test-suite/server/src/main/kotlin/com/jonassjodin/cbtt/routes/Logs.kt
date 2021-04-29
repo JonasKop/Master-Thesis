@@ -1,6 +1,7 @@
 package com.jonassjodin.cbtt.routes
 
 import com.jonassjodin.cbtt.k8s.K8s
+import com.jonassjodin.cbtt.lib.checkWSAuth
 import io.ktor.http.*
 import io.ktor.http.cio.websocket.*
 import io.ktor.response.*
@@ -11,7 +12,9 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 
 fun Route.logsRouting() {
-    webSocket("/api/logs/{name}") {
+    webSocket("/logs/{name}") {
+        call.application.environment.log.error("WS /logs/{name}")
+        checkWSAuth(call) ?: return@webSocket
         val name = call.parameters["name"] ?: return@webSocket call.respondText(
             "Missing name url parameter",
             status = HttpStatusCode.BadRequest

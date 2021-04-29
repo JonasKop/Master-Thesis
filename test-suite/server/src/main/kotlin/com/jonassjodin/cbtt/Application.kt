@@ -1,5 +1,6 @@
 package com.jonassjodin.cbtt
 
+import com.jonassjodin.cbtt.config.readConfig
 import com.jonassjodin.cbtt.k8s.K8s
 import com.jonassjodin.cbtt.routes.registerRoutes
 import io.ktor.application.*
@@ -8,6 +9,7 @@ import io.ktor.serialization.*
 import io.ktor.websocket.*
 
 fun main(args: Array<String>) {
+    readConfig()
     K8s.syncRepos()
     io.ktor.server.netty.EngineMain.main(args)
 }

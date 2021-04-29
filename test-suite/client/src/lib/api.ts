@@ -1,41 +1,60 @@
-async function getConfig() {
-  const resp = await fetch('/api/config');
-  const config = (await resp.json()).config;
-  return config;
-}
+import { BASE_HTTP_URL } from './index';
 
-async function putConfig(config: string) {
-  const resp = await fetch('/api/config', {
-    method: 'PUT',
+async function request(url: string, options: RequestInit = {}): Promise<Response> {
+  const resp = await fetch(`/api${url}`, {
+    ...options,
     headers: {
-      'Content-Type': 'application/json',
+      ...(options.headers || {}),
+      Authorization: `Basic ${localStorage.auth}`,
     },
-    body: JSON.stringify({ config }),
   });
-  return resp.status;
+  if (url !== '/login' && resp.status === 401) {
+    localStorage.removeItem('auth');
+    window.location.reload();
+  }
+  return resp;
 }
 
-async function postTest(buildToolName: string, repoName: string, cache: boolean, push: boolean) {
-  const resp = await fetch('/api/test', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ buildToolName, repoName, cache, push }),
-  });
-  return resp.status;
-}
-
-async function deletePod(name: string) {
-  const resp = await fetch(`/api/pod/${name}`, { method: 'DELETE' });
-  return resp.status;
-}
+const encodeBody = (body: Record<string, unknown>) => ({
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+});
 
 const api = {
-  getConfig,
-  putConfig,
-  postTest,
-  deletePod,
+  get: (url: string, options: RequestInit = {}): Promise<Response> => request(url, { ...options, method: 'GET' }),
+  delete: (url: string, options: RequestInit = {}): Promise<Response> => request(url, { ...options, method: 'DELETE' }),
+  post: (url: string, body: Record<string, unknown>, options: RequestInit = {}): Promise<Response> =>
+    request(url, { ...options, method: 'POST', ...encodeBody(body) }),
+  put: (url: string, body: Record<string, unknown>, options: RequestInit = {}): Promise<Response> =>
+    request(url, { ...options, method: 'PUT', ...encodeBody(body) }),
 };
 
-export default api;
+export async function getConfig() {
+  const resp = await api.get('/config');
+  return (await resp.json()).config;
+}
+
+export async function putConfig(config: string) {
+  const resp = await api.put('/config', { config });
+  return resp.status;
+}
+
+export async function postTest(buildToolName: string, repoName: string, cache: boolean, push: boolean) {
+  const resp = await api.post('/test', { buildToolName, repoName, cache, push });
+  return resp.status;
+}
+
+export async function deletePod(name: string) {
+  const resp = await api.delete(`/pod/${name}`);
+  return resp.status;
+}
+
+export async function deleteRepo(name: string) {
+  const resp = await api.delete(`/repo/${name}`);
+  return resp.status;
+}
+
+export async function login(username: string, password: string) {
+  const resp = await api.post('/login', { username, password });
+  return resp.status;
+}

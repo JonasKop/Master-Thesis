@@ -1,6 +1,6 @@
 package com.jonassjodin.cbtt.k8s.test
 
-import io.kubernetes.client.PodLogs
+import io.fabric8.kubernetes.client.KubernetesClient
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
@@ -10,10 +10,11 @@ import java.io.InputStreamReader
 import java.lang.StringBuilder
 
 object MyPodLogs {
-    fun list(namespace: String, name: String, channel: Channel<String>) {
+    fun list(client: KubernetesClient, name: String, channel: Channel<String>) {
         val sb = StringBuilder()
-        val podLogs = PodLogs()
-        val stream = podLogs.streamNamespacedPodLog(namespace, name, null)
+
+        val logs = client.pods().withName(name).watchLog()
+        val stream = logs.output
         val buff = BufferedReader(InputStreamReader(stream))
         var start = System.nanoTime()
 
@@ -22,7 +23,7 @@ object MyPodLogs {
             sb.append(line)
             val current = System.nanoTime()
 
-            if (current - start >= 1000000000L) {
+            if (current - start >= 100000000L) {
                 val str = sb.toString()
                 GlobalScope.launch { channel.send(str) }
                 sb.setLength(0)

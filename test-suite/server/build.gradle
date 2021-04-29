@@ -1,8 +1,8 @@
 plugins {
-    id 'com.google.cloud.tools.jib' version '2.8.0'
+//    id 'com.google.cloud.tools.jib' version '2.8.0'
     id 'application'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.32'
-    id 'org.jetbrains.kotlin.plugin.serialization' version "1.4.21"
+    id 'org.jetbrains.kotlin.jvm' version '1.5.0'
+    id 'org.jetbrains.kotlin.plugin.serialization' version "1.5.0"
 }
 
 group "com.jonassjodin.cbtt "
@@ -14,11 +14,20 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    implementation "com.charleskorn.kaml:kaml:$kaml_version"
-    implementation "com.google.code.gson:gson:$gson_version"
-    implementation "io.kubernetes:client-java:$k8s_version"
+allprojects {
+    repositories {
+        maven { url 'https://jitpack.io' }
+    }
+}
 
+dependencies {
+    implementation "org.snakeyaml:snakeyaml-engine:$snakeyaml_version"
+    implementation "com.charleskorn.kaml:kaml:$kaml_version"
+
+    implementation "io.fabric8:kubernetes-client:$k8s_version"
+    implementation "com.github.fkorotkov:k8s-kotlin-dsl:$k8s_dsl_version"
+
+    implementation "io.ktor:ktor-auth:$ktor_version"
     implementation "io.ktor:ktor-websockets:$ktor_version"
     implementation "io.ktor:ktor-serialization:$ktor_version"
     implementation "io.ktor:ktor-server-core:$ktor_version"
@@ -33,7 +42,9 @@ jar {
         attributes 'Main-Class': 'com.jonassjodin.cbtt.ApplicationKt'
     }
 
-    from(configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
-        exclude 'META-INF', 'META-INF/**'
-    }
+    from(configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) })
+
+//    from(configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }) {
+//        exclude 'META-INF', 'META-INF/**'
+//    }
 }

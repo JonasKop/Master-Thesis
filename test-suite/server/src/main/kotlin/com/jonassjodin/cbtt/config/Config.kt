@@ -6,8 +6,6 @@ import com.charleskorn.kaml.Yaml
 import java.io.File
 import java.io.FileNotFoundException
 
-val configFile = System.getenv("CONFIG_FILE") ?: "config.yaml"
-
 fun readFileAsString() = readFileAsString(configFile)
 fun readFileAsString(configFile: String): String {
     try {
@@ -18,17 +16,15 @@ fun readFileAsString(configFile: String): String {
     }
 }
 
-fun readFile(configFile: String): Config {
-    val fileContent = readFileAsString(configFile)
-    return Yaml.default.decodeFromString(Config.serializer(), fileContent)
-}
-
 fun readConfig(): Config {
-    val config = readFile(configFile)
+    val fileContent = readFileAsString(configFile)
+    val config = Yaml.default.decodeFromString(Config.serializer(), fileContent)
     validateConfig(config)
-    return config;
+    return config
 }
 
 fun saveConfig(fileContent: String) {
+    val config = Yaml.default.decodeFromString(Config.serializer(), fileContent)
+    validateConfig(config)
     File(configFile).writeText(fileContent)
 }

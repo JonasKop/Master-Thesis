@@ -7,16 +7,17 @@ import io.ktor.http.*
 import io.ktor.response.*
 import io.ktor.routing.*
 
-fun Route.podRouting() {
-    route("/pod/{name}") {
+fun Route.repoRouting() {
+    route("/repo/{name}") {
         delete {
-            call.application.environment.log.error("DELETE /pod/{name}")
+            call.application.environment.log.error("DELETE /repo/{name}")
             checkHTTPAuth(call) ?: return@delete
             val name = call.parameters["name"] ?: return@delete call.respondText(
                 "Missing name url parameter",
                 status = HttpStatusCode.BadRequest
             )
             K8s.deletePod(name)
+            K8s.deletePVC(name)
         }
     }
 }

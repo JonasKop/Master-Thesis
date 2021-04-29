@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react';
 
+const auth = localStorage.auth;
+
 function useWebSocket<T>(url: string, fn: (data: T) => void, isJSON: boolean = true) {
   const [ws, setWs] = useState<WebSocket>();
   const [error, setError] = useState<any>();
 
   useEffect(() => {
     try {
-      const socket = new WebSocket(url);
+      const socket = new WebSocket(`${url}?auth=${auth}`);
       socket.onopen = () => {
         socket.send('Message to send');
         console.log('Message is sent...');

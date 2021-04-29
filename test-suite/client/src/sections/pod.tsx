@@ -3,9 +3,11 @@ import { useCallback, useState } from 'react';
 import AceEditor from 'react-ace';
 import { Button } from '@chakra-ui/react';
 
-import { useParams,useHistory } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import styled from 'styled-components';
-import api from '../lib/api';
+import { deletePod } from '../lib/api';
+import { deleteRepo } from '../lib/api';
+import { BASE_WS_URL } from '../lib';
 
 interface Params {
   name: string;
@@ -25,13 +27,17 @@ function Pod() {
   const { name } = useParams<Params>();
   const history = useHistory<Params>();
 
-
   const fn = useCallback((e) => setLogs((e1) => e1 + e), []);
-  useWebSocket(`ws://localhost:8080/api/logs/${name}`, fn, false);
+  useWebSocket(`${BASE_WS_URL}/logs/${name}`, fn, false);
 
   async function onClick() {
-    await api.deletePod(name);
-    history.push("/")
+    if (name.startsWith('cbtt-repo')) {
+      await deleteRepo(name);
+    } else {
+      await deletePod(name);
+    }
+
+    history.push('/');
   }
 
   return (

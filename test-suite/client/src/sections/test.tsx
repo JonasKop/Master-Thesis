@@ -1,7 +1,7 @@
 import { Select, Button, useToast, useBoolean } from '@chakra-ui/react';
 import { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
-import api from '../lib/api';
 import styled from 'styled-components';
+import { postTest } from '../lib/api';
 import { appContext } from '../lib/queue';
 
 const Container = styled.div`
@@ -11,11 +11,7 @@ const Container = styled.div`
   justify-items: center;
 `;
 
-type TestType =
-  | 'cache and push'
-  | 'no cache and push'
-  | 'cache and no push'
-  | 'no cache and no push';
+type TestType = 'cache and push' | 'no cache and push' | 'cache and no push' | 'no cache and no push';
 
 const CACHE_AND_PUSH: TestType = 'cache and push';
 const NO_CACHE_AND_PUSH: TestType = 'no cache and push';
@@ -57,7 +53,7 @@ function Test() {
     const isCache = test === CACHE_AND_PUSH || test === CACHE_AND_NO_PUSH;
     const isPush = test === CACHE_AND_PUSH || test === NO_CACHE_AND_PUSH;
     on();
-    await api.postTest(buildTool, repo, isCache, isPush);
+    await postTest(buildTool, repo, isCache, isPush);
     toast({
       title: 'Added to queue',
       status: 'success',

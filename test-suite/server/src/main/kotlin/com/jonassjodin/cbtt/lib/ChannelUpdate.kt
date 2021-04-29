@@ -13,7 +13,8 @@ class ChannelUpdater<T>(val fn: () -> T, private val interval: Long) {
         GlobalScope.launch {
             while (true) {
                 delay(interval)
-                li.toList().forEach { it.send(fn()) }
+                val fnResult = fn()
+                li.toList().forEach { it.send(fnResult) }
             }
         }
     }

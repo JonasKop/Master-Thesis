@@ -2,6 +2,7 @@ package com.jonassjodin.cbtt.routes
 
 import com.jonassjodin.cbtt.config.readConfig
 import com.jonassjodin.cbtt.k8s.test.Job
+import com.jonassjodin.cbtt.lib.checkHTTPAuth
 import com.jonassjodin.cbtt.models.IncomingJob
 import com.jonassjodin.cbtt.worker.Worker
 import io.ktor.application.*
@@ -12,8 +13,10 @@ import io.ktor.routing.*
 import java.lang.Exception
 
 fun Route.testRouting() {
-    route("/api/test") {
+    route("/test") {
         post {
+            call.application.environment.log.error("POST /test")
+            checkHTTPAuth(call) ?: return@post
             try {
                 val incomingJob = call.receive<IncomingJob>()
                 val conf = readConfig()

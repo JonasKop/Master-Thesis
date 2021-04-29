@@ -10,5 +10,5 @@ export interface ConfigContext {
 export const configContext = createContext<ConfigContext>({
   configFile: '',
   config: {} as Config,
-  setConfig: (str) => {},
+  setConfig: (_) => {},
 });

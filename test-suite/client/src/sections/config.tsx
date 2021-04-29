@@ -7,8 +7,8 @@ import { Config as ConfigType } from '../lib/types';
 import { Button, useBoolean, useToast } from '@chakra-ui/react';
 import { useContext, useEffect, useState } from 'react';
 import yaml from 'js-yaml';
-import api from '../lib/api';
 import { appContext } from '../lib/queue';
+import { getConfig, putConfig } from '../lib/api';
 
 const Container = styled.div`
   height: 100%;
@@ -26,11 +26,11 @@ function Config() {
   const [isLoading, { on, off }] = useBoolean(false);
 
   useEffect(() => {
-    api.getConfig();
+    getConfig();
   }, []);
   async function handleClick() {
     on();
-    const status = await api.putConfig(value);
+    const status = await putConfig(value);
     if (status >= 400) {
       off();
       toast({
