@@ -13,7 +13,11 @@ private fun genName(job: Job) = "cbtt-test-${job.buildTool.name}-${job.repo.name
 private fun genTestTypeName(job: Job) = "${genName(job)}-${genSuffix(job)}"
 
 private fun genSuffix(job: Job): String {
-    val cache = if (job.cache) "cache" else "nocache"
+    val cache = when {
+        job.localCache -> "localcache"
+        job.remoteCache -> "remotecache"
+        else -> "nocache"
+    }
     val push = if (job.push) "push" else "nopush"
     return "$cache-$push"
 }
@@ -32,12 +36,12 @@ private fun genAnnotations(job: Job): Map<String, String> {
 }
 
 private fun genSecurityContext(job: Job): SecurityContext {
+    val jobsec = job.buildTool.securityContext
     val ctx = SecurityContext()
-    if (job.buildTool.securityContext?.privileged == true) {
-        ctx.privileged = true
-    }
-    if (job.buildTool.securityContext?.userID != null) {
-        ctx.runAsUser = job.buildTool.securityContext.userID.toLong()
+
+    if (jobsec != null) {
+        ctx.privileged = jobsec.privileged
+        ctx.runAsUser = jobsec.runAsUser
     }
     return ctx
 }
@@ -45,15 +49,37 @@ private fun genSecurityContext(job: Job): SecurityContext {
 class Test(job: Job) : Pod() {
     init {
         val repoName = genRepoName(job.repo)
+        val jobName = genTestTypeName(job)
         val jobs = K8s.listTestJobs().filter { it.metadata?.name?.startsWith(genTestTypeName(job)) == true }
-        val id = jobs.size
         val config = readConfig()
+        val id = jobs.map { it.metadata.name }
+            .filter { it.startsWith(jobName) }
+            .map { it.substring(jobName.length + 1) }
+            .maxOfOrNull { it.toInt() + 1 } ?: 0
+
 
         metadata {
-            name = "${genTestTypeName(job)}-$id"
+            name = "${jobName}-$id"
             annotations = genAnnotations(job)
         }
         spec {
+            initContainers = listOfNotNull(
+                if (job.localCache) {
+                    newContainer {
+                        name = "setup"
+                        image = "alpine"
+                        command = listOf("chmod", "-R", "777", job.buildTool.localCacheDir)
+                        volumeMounts = listOf(
+                            newVolumeMount {
+                                mountPath = job.buildTool.localCacheDir
+                                name = job.buildTool.name
+                                subPath = job.buildTool.name
+                                readOnly = false
+                            }
+                        )
+                    }
+                } else null
+            )
             containers = listOf(
                 newContainer {
                     name = genName(job)
@@ -65,12 +91,21 @@ class Test(job: Job) : Pod() {
                         }
                     }
                     command = genCommands(job, config)
-                    volumeMounts = listOf(
+                    volumeMounts = listOfNotNull(
                         newVolumeMount {
                             mountPath = config.workdir
                             name = "cbtt-repo-${job.repo.name}"
+                            subPath = "repo"
                             readOnly = true
-                        }
+                        }, if (job.localCache) {
+                            newVolumeMount {
+                                mountPath = job.buildTool.localCacheDir
+                                name = job.buildTool.name
+                                subPath = job.buildTool.name
+                                readOnly = false
+
+                            }
+                        } else null
                     )
                     newResourceRequirements {
                         limits = mapOf(
@@ -85,13 +120,21 @@ class Test(job: Job) : Pod() {
                     securityContext = genSecurityContext(job)
                 }
             )
-            volumes = listOf(
+            volumes = listOfNotNull(
                 newVolume {
                     name = repoName
                     persistentVolumeClaim {
                         claimName = repoName
                     }
-                }
+                },
+                if (job.localCache) {
+                    newVolume {
+                        name = job.buildTool.name
+                        persistentVolumeClaim {
+                            claimName = job.buildTool.name
+                        }
+                    }
+                } else null
             )
             restartPolicy = "Never"
         }
@@ -100,15 +143,26 @@ class Test(job: Job) : Pod() {
     private fun genCommands(job: Job, config: Config): List<String> {
         val base = listOf("sh", "-c")
         val commands = when {
-            job.cache && job.push -> job.buildTool.command.cache!!.push!!
-            job.cache && !job.push -> job.buildTool.command.cache!!.noPush!!
-            !job.cache && job.push -> job.buildTool.command.noCache!!.push!!
+            job.remoteCache && job.push -> job.buildTool.command.remoteCache!!.push!!
+            job.remoteCache && !job.push -> job.buildTool.command.remoteCache!!.noPush!!
+            job.localCache && job.push -> job.buildTool.command.localCache!!.push!!
+            job.localCache && !job.push -> job.buildTool.command.localCache!!.noPush!!
+            job.push -> job.buildTool.command.noCache!!.push!!
             else -> job.buildTool.command.noCache!!.noPush!!
         }
-        val command = "${job.buildTool.command.setup} && $commands"
+        println(job)
+        val command = listOf(
+//            "sleep 1000",
+//            "mkdir -p /tmp",
+//            "cp -rf ${config.workdir}/repo /tmp${config.workdir}",
+//            "cd /tmp${config.workdir}",
+            job.buildTool.command.setup,
+            commands
+        ).joinToString(" && ")
 
         return base + command
             .replace("\${name}", job.buildTool.name)
+            .replace("\${cache_dir}", "${job.buildTool.localCacheDir}")
             .replace("\${workdir}", "${config.workdir}/repo")
             .replace("\${image}", "${registryPrefix}/${job.buildTool.name}")
             .replace("\${registry_url}", registryUrl)
@@ -118,5 +172,11 @@ class Test(job: Job) : Pod() {
 }
 
 @Serializable
-data class Job(val repo: Repository, val buildTool: BuildTool, val cache: Boolean, val push: Boolean)
+data class Job(
+    val repo: Repository,
+    val buildTool: BuildTool,
+    val localCache: Boolean,
+    val remoteCache: Boolean,
+    val push: Boolean
+)
 

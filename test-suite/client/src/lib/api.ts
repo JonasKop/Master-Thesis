@@ -1,7 +1,9 @@
-import { BASE_HTTP_URL } from './index';
+import { isLocal } from './index';
+
+const prefix = isLocal ? '' : '/api';
 
 async function request(url: string, options: RequestInit = {}): Promise<Response> {
-  const resp = await fetch(`/api${url}`, {
+  const resp = await fetch(`${prefix}${url}`, {
     ...options,
     headers: {
       ...(options.headers || {}),
@@ -39,8 +41,14 @@ export async function putConfig(config: string) {
   return resp.status;
 }
 
-export async function postTest(buildToolName: string, repoName: string, cache: boolean, push: boolean) {
-  const resp = await api.post('/test', { buildToolName, repoName, cache, push });
+export async function postTest(
+  buildToolName: string,
+  repoName: string,
+  localCache: boolean,
+  remoteCache: boolean,
+  push: boolean
+) {
+  const resp = await api.post('/test', { buildToolName, repoName, localCache, remoteCache, push });
   return resp.status;
 }
 

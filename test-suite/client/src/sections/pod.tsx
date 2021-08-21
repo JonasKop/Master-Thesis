@@ -1,31 +1,21 @@
-import useWebSocket from '../lib/websocket';
 import { useCallback, useState } from 'react';
 import AceEditor from 'react-ace';
-import { Button } from '@chakra-ui/react';
-
+import { Button, Heading } from '@chakra-ui/react';
 import { useParams, useHistory } from 'react-router-dom';
-import styled from 'styled-components';
+import { BASE_WS_URL } from '../lib';
 import { deletePod } from '../lib/api';
 import { deleteRepo } from '../lib/api';
-import { BASE_WS_URL } from '../lib';
+import useWebSocket from '../lib/websocket';
+import Area from '../components/area';
 
 interface Params {
   name: string;
 }
 
-const Container = styled.div`
-  width: 100%;
-  height: 100%;
-  display: grid;
-  grid-template-rows: 1fr min-content;
-  justify-items: center;
-  grid-gap: 10px;
-`;
-
 function Pod() {
   const [logs, setLogs] = useState('');
   const { name } = useParams<Params>();
-  const history = useHistory<Params>();
+  const history = useHistory();
 
   const fn = useCallback((e) => setLogs((e1) => e1 + e), []);
   useWebSocket(`${BASE_WS_URL}/logs/${name}`, fn, false);
@@ -41,7 +31,17 @@ function Pod() {
   }
 
   return (
-    <Container>
+    <Area
+      display="grid"
+      width="100%"
+      height="100%"
+      gridTemplateRows="min-content 1fr min-content"
+      justifyItems="center"
+      gridGap="10px"
+    >
+      <Heading fontSize="xl" justifySelf="flex-start">
+        {name}
+      </Heading>
       <AceEditor
         placeholder="Placeholder Text"
         theme="monokai"
@@ -63,8 +63,10 @@ function Pod() {
           tabSize: 2,
         }}
       />
-      <Button onClick={onClick}>Delete</Button>
-    </Container>
+      <Button colorScheme="red" onClick={onClick}>
+        Delete
+      </Button>
+    </Area>
   );
 }
 

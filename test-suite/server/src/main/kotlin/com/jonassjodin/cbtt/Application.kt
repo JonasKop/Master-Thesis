@@ -10,7 +10,7 @@ import io.ktor.websocket.*
 
 fun main(args: Array<String>) {
     readConfig()
-    K8s.syncRepos()
+    K8s.syncConfig()
     io.ktor.server.netty.EngineMain.main(args)
 }
 
@@ -18,7 +18,8 @@ fun main(args: Array<String>) {
  * Please note that you can use any other name instead of *module*.
  * Also note that you can have more then one modules in your application.
  * */
-@Suppress("unused") // Referenced in application.conf
+@Suppress("unused") //
+// Referenced in application.conf
 @kotlin.jvm.JvmOverloads
 fun Application.module(testing: Boolean = false) {
     install(ContentNegotiation) {

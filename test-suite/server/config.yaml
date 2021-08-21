@@ -1,78 +1,84 @@
 resources:
   limits:
-    memory: 512Mi
-    cpu: 0.8
+    memory: 1536Mi
+    cpu: 0.6
   requests:
     memory: 256Mi
-    cpu: 0.4
+    cpu: 0.3
 workdir: /workspace
 repositories:
-  - name: quick
-    url: https://github.com/JonasKop/TestRepo
-    dir: /quick
-  - name: slow
-    url: https://github.com/JonasKop/TestRepo
-    dir: /slow
-  - name: copy
-    url: https://github.com/JonasKop/Registry-Cleaner
+  - name: largenextjs
+    url: https://github.com/JonasKop/nextjswebsite.git
     dir: /
+  - name: largenextjs2
+    url: https://github.com/JonasKop/nextjswebsite2.git
+    dir: /
+  - name: quick
+    url: https://github.com/JonasKop/thesis-tests.git
+    dir: /quick
+  - name: largecopy
+    url: https://github.com/JonasKop/thesis-tests.git
+    dir: /largecopy
 buildTools:
   - name: kaniko
     image: gcr.io/kaniko-project/executor:debug
     command:
       setup: echo '{"auths":{"${registry_url}":{"username":"${registry_username}","password":"${registry_password}"}}}' >/kaniko/.docker/config.json
-      cache:
-        push: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --destination=${image}
-        noPush: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --no-push
       noCache:
         push: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=false --destination=${image}
         noPush: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=false --no-push
+      remoteCache:
+        push: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --destination=${image}
+        noPush: /kaniko/executor --context ${workdir} --dockerfile ${workdir}/Dockerfile --cache=true --cache-repo=${image} --no-push
   - name: buildah
     image: quay.io/buildah/stable
     securityContext:
       privileged: true
+      runAsUser: 1000
+    localCacheDir: /home/build/.local/share/containers
     command:
       setup: buildah login --username ${registry_username} --password ${registry_password} ${registry_url}
       noCache:
         noPush: buildah bud -t ${image} ${workdir}
         push: buildah bud -t ${image} ${workdir} && buildah push ${image}
-      cache:
-        noPush: buildah pull ${image} && buildah bud --layers -t ${image} ${workdir}
-        push: buildah pull ${image} && buildah bud --layers -t ${image} ${workdir} && buildah push ${image}
+      localCache:
+        noPush: buildah bud --layers -t ${image} ${workdir}
+        push: buildah bud --layers -t ${image} ${workdir} && buildah push ${image}
   - name: buildkit
     image: moby/buildkit:master-rootless
     securityContext:
       seccomp: unconfined
       apparmor: unconfined
-      userID: 1000
+      runAsUser: 1000
     env:
       BUILDKITD_FLAGS: --oci-worker-no-process-sandbox
+    localCacheDir: /cache
     command:
       setup: mkdir -p ~/.docker && echo '{"auths":{"${registry_url}":{"username":"${registry_username}","password":"${registry_password}"}}}' > ~/.docker/config.json
       noCache:
         noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir}
         push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --output type=image,name=${image},push=true
-      cache:
-        noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=registry,ref=${image}
-        push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --output type=image,name=${image},push=true --export-cache type=inline --import-cache type=registry,ref=${image}
+      remoteCache:
+        noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=registry,ref=${image}:cache --export-cache type=registry,ref=${image}:cache
+        push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=registry,ref=${image}:cache --export-cache type=registry,ref=${image}:cache --output type=image,name=${image},push=true
+      localCache:
+        noPush: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=local,src=${cache_dir} --export-cache type=local,dest=${cache_dir}
+        push: buildctl-daemonless.sh build --frontend dockerfile.v0 --local context=${workdir} --local dockerfile=${workdir} --import-cache type=local,src=${cache_dir} --export-cache type=local,dest=${cache_dir} --output type=image,name=${image},push=true
   - name: img
     image: r.j3ss.co/img
     securityContext:
       seccomp: unconfined
       apparmor: unconfined
-      userID: 1000
+      runAsUser: 1000
+    localCacheDir: /cache
     command:
       setup: echo ${registry_password} | img login --username ${registry_username} --password-stdin ${registry_url}
       noCache:
         noPush: img build --no-cache -t ${image} ${workdir}
         push: img build --no-cache -t ${image} ${workdir} && img push ${image}
-      cache:
-        noPush: img build --cache-from ${image} -t ${image} ${workdir}
-        push: img build --cache-from ${image} -t ${image} ${workdir} && img push ${image}
-#  - name: "jib"
-#    image: "gradle:jdk15"
-#    command:
-#      - "sh"
-#      - "-c"
-#      - "mkdir /app && cp -rf ${workdir} /app && ls -la /app/repo && cd /app/repo && gradle\
-#    \ jibBuildTar --no-daemon"
+      remoteCache:
+        noPush: img build --cache-from type=registry,ref=${image}:cache --cache-to type=registry,ref=${image}:cache -t ${image} ${workdir}
+        push: img build --cache-from type=registry,ref=${image}:cache --cache-to type=registry,ref=${image}:cache -t ${image} ${workdir} && img push ${image}
+      localCache:
+        noPush: img build --cache-from type=local,src=${cache_dir} --cache-to type=local,dest=${cache_dir} -t ${image} ${workdir}
+        push: img build --cache-from type=local,src=${cache_dir} --cache-to type=local,dest=${cache_dir} -t ${image} ${workdir} && img push ${image}

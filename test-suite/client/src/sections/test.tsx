@@ -1,59 +1,95 @@
-import { Select, Button, useToast, useBoolean } from '@chakra-ui/react';
-import { ChangeEvent, useCallback, useContext, useEffect, useState } from 'react';
-import styled from 'styled-components';
-import { postTest } from '../lib/api';
+import { Select, Button, useBoolean, RadioGroup, Stack, Radio, useToast, Heading } from '@chakra-ui/react';
+import { useContext, useEffect, useState } from 'react';
 import { appContext } from '../lib/queue';
+import { BuildTool, Command } from '../lib/types';
+import { postTest } from '../lib/api';
+import { capitalize } from '../lib';
+import Area from '../components/area';
+import { colors } from '../lib/style';
 
-const Container = styled.div`
-  height: 100%;
-  width: 100%;
-  display: grid;
-  justify-items: center;
-`;
+function getFirstCache(cmd: Command): string {
+  if (cmd.noCache) return 'no';
+  if (cmd.localCache) return 'local';
+  return 'remote';
+}
 
-type TestType = 'cache and push' | 'no cache and push' | 'cache and no push' | 'no cache and no push';
+interface CurrentTool {
+  buildToolName: string;
+  localCache: boolean;
+  remoteCache: boolean;
+  push: boolean;
+}
 
-const CACHE_AND_PUSH: TestType = 'cache and push';
-const NO_CACHE_AND_PUSH: TestType = 'no cache and push';
-const CACHE_AND_NO_PUSH: TestType = 'cache and no push';
-const NO_CACHE_AND_NO_PUSH: TestType = 'no cache and no push';
+interface BTTestProps {
+  buildTool: BuildTool;
+  setCurrentTool: (tool: CurrentTool) => void;
+}
+
+function BTTest({ buildTool, setCurrentTool }: BTTestProps) {
+  const [cache, setCache] = useState('no');
+  const [push, setPush] = useState('no');
+
+  useEffect(() => {
+    setCache(getFirstCache(buildTool.command));
+  }, [buildTool.command]);
+
+  useEffect(() => {
+    setCurrentTool({
+      buildToolName: buildTool.name,
+      localCache: cache === 'local',
+      remoteCache: cache === 'remote',
+      push: push === 'yes',
+    });
+  }, [buildTool.name, cache, push, setCurrentTool]);
+
+  const caches = [
+    ...(buildTool.command.noCache ? ['no'] : []),
+    ...(buildTool.command.localCache ? ['local'] : []),
+    ...(buildTool.command.remoteCache ? ['remote'] : []),
+  ].filter((e) => e);
+  return (
+    <>
+      <Heading fontSize="s">Cache</Heading>
+      <RadioGroup onChange={setCache} value={cache}>
+        <Stack direction="row">
+          {caches.map((e) => (
+            <Radio key={e} value={e}>
+              {capitalize(e)}
+            </Radio>
+          ))}
+        </Stack>
+      </RadioGroup>
+      <Heading fontSize="s">Push</Heading>
+      <RadioGroup onChange={setPush} value={push}>
+        <Stack direction="row">
+          <Radio value="no">No</Radio>
+          <Radio value="yes">Yes</Radio>
+        </Stack>
+      </RadioGroup>
+    </>
+  );
+}
 
 function Test() {
   const { config } = useContext(appContext);
   const toast = useToast();
   const [buildTool, setBuildTool] = useState(config.buildTools[0].name);
   const [repo, setRepo] = useState(config.repositories[0].name);
+  const currentRepo = config.repositories.find((e) => e.name === repo)!!;
+  const currentBt = config.buildTools.find((e) => e.name === buildTool)!!;
+
+  const [currentTool, setCurrentTool] = useState<CurrentTool>({
+    buildToolName: currentBt.name,
+    localCache: false,
+    remoteCache: false,
+    push: false,
+  });
+
   const [isLoading, { on, off }] = useBoolean(false);
-  const genTests = useCallback(() => {
-    const bt = config.buildTools.filter((e) => e.name === buildTool)[0];
-    return [
-      ...(typeof bt.command.cache?.push === 'string' ? [CACHE_AND_PUSH as TestType] : []),
-      ...(typeof bt.command.cache?.noPush === 'string' ? [CACHE_AND_NO_PUSH] : []),
-      ...(typeof bt.command.noCache?.push === 'string' ? [NO_CACHE_AND_PUSH] : []),
-      ...(typeof bt.command.noCache?.noPush === 'string' ? [NO_CACHE_AND_NO_PUSH] : []),
-    ].filter((e) => e);
-  }, [buildTool, config.buildTools]);
-  const [tests, setTests] = useState<TestType[]>(genTests());
-
-  useEffect(() => {
-    setTests(genTests());
-  }, [genTests]);
-
-  const [test, setTest] = useState(tests[0]);
-
-  function changeTool(e: ChangeEvent<HTMLSelectElement>) {
-    setBuildTool(e.target.value);
-  }
-
-  useEffect(() => {
-    setTest(tests[0]);
-  }, [tests]);
 
   async function onClick() {
-    const isCache = test === CACHE_AND_PUSH || test === CACHE_AND_NO_PUSH;
-    const isPush = test === CACHE_AND_PUSH || test === NO_CACHE_AND_PUSH;
     on();
-    await postTest(buildTool, repo, isCache, isPush);
+    await postTest(currentTool.buildToolName, repo, currentTool.localCache, currentTool.remoteCache, currentTool.push);
     toast({
       title: 'Added to queue',
       status: 'success',
@@ -63,15 +99,8 @@ function Test() {
   }
 
   return (
-    <Container>
-      <h1>Run a test job</h1>
-      <Select value={buildTool} onChange={changeTool}>
-        {config.buildTools.map((e) => (
-          <option key={e.name} value={e.name}>
-            {e.name}
-          </option>
-        ))}
-      </Select>
+    <Area justifySelf="center" alignSelf="flex-start" maxWidth="500px">
+      <Heading fontSize="xl">Run a test job</Heading>
       <Select value={repo} onChange={(e) => setRepo(e.target.value)}>
         {config.repositories.map((e) => (
           <option key={e.name} value={e.name}>
@@ -79,17 +108,23 @@ function Test() {
           </option>
         ))}
       </Select>
-      <Select value={test} onChange={(e) => setTest(e.target.value as TestType)}>
-        {tests.map((e) => (
-          <option key={e} value={e}>
-            {e}
-          </option>
-        ))}
+      <Select value={buildTool} onChange={(e) => setBuildTool(e.target.value)}>
+        {config.buildTools
+          .filter((e) => {
+            if (!currentRepo.tags || !e.tag) return true;
+            return currentRepo.tags.includes(e.tag);
+          })
+          .map((e) => (
+            <option key={e.name} value={e.name}>
+              {e.name}
+            </option>
+          ))}
       </Select>
-      <Button isLoading={isLoading} onClick={onClick}>
+      <BTTest buildTool={config.buildTools.find((e) => e.name === buildTool)!!} setCurrentTool={setCurrentTool} />
+      <Button colorScheme="cbtt" color={colors.accent} isLoading={isLoading} onClick={onClick}>
         Add to queue
       </Button>
-    </Container>
+    </Area>
   );
 }
 

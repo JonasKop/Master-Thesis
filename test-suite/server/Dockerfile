@@ -1,7 +1,7 @@
 FROM docker.io/gradle:jdk15 as build
 COPY build.gradle gradle.properties settings.gradle ./
 COPY src ./src
-RUN gradle clean build --no-daemon --stacktrace
+RUN gradle clean build --stacktrace
 
 FROM docker.io/openjdk:15-jdk-alpine as prod
 WORKDIR /app

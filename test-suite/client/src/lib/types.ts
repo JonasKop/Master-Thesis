@@ -1,37 +1,44 @@
+export interface PushStatus {
+  push: string;
+  noPush: string;
+}
+
+export interface Command {
+  setup: string;
+  noCache?: PushStatus;
+  localCache?: PushStatus;
+  remoteCache?: PushStatus;
+}
+
+export interface SecurityContext {
+  seccomp?: string;
+  apparmor?: string;
+  privileged?: boolean;
+  userID?: number;
+}
+
 export interface BuildTool {
   name: string;
   image: string;
-  command: {
-    setup: string;
-    cache?: {
-      push: string;
-      noPush: string;
-    };
-    noCache?: {
-      push: string;
-      noPush: string;
-    };
-  };
-  securityContext: {
-    seccomp: string | null;
-    apparmor: string | null;
-    privileged: boolean | null;
-    userID: number | null;
-  } | null;
-  env: Record<string, string> | null;
+  tag: string;
+  command: Command;
+  securityContext?: SecurityContext;
+  env?: Record<string, string>;
+  localCacheDir?: string;
 }
 
 export interface Repository {
   name: string;
+  tags: string[];
   url: string;
   dir: string;
-  jib: boolean;
 }
 
 export interface Job {
   repo: Repository;
   buildTool: BuildTool;
-  cache: boolean;
+  localCache: boolean;
+  remoteCache: boolean;
   push: boolean;
 }
 

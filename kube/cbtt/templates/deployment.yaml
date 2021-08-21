@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Release.Name }}
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+    spec:
+      serviceAccountName: {{ .Release.Name }}
+      initContainers:
+        - name: setup
+          image: ubuntu
+          command: 
+            - sh
+            - -c
+            - cp -n /config.yaml /config/config.yaml && chmod 666 /config/config.yaml
+          volumeMounts:
+            - name: config
+              mountPath: /config.yaml
+              subPath: config.yaml
+              readOnly: false
+            - mountPath: /config
+              subPath: cbtt
+              name: config-storage
+      containers:
+        - name: client
+          image: {{ .Values.client.image }}
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 3000
+        - name: server
+          image: {{ .Values.server.image }}
+          imagePullPolicy: Always
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-server
+          env:
+            - name: CONFIG_FILE
+              value: /config/config.yaml
+            - name: GRAFANA_URL
+              value: {{ .Values.grafanaUrl }}
+          volumeMounts:
+            - mountPath: /config
+              subPath: cbtt
+              name: config-storage
+          ports:
+            - containerPort: 8080
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Release.Name }}-config
+        - name: config-storage
+          persistentVolumeClaim:
+            claimName: {{ .Release.Name }}

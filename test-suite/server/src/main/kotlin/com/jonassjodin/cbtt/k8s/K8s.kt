@@ -3,7 +3,6 @@ package com.jonassjodin.cbtt.k8s
 import com.jonassjodin.cbtt.k8s.repos.Repos
 import com.jonassjodin.cbtt.k8s.test.*
 import io.fabric8.kubernetes.api.model.Pod
-import io.fabric8.kubernetes.client.ConfigBuilder
 import io.fabric8.kubernetes.client.DefaultKubernetesClient
 import kotlinx.coroutines.channels.Channel
 import java.io.File
@@ -21,9 +20,12 @@ object K8s {
 
     fun listenToLogs(name: String, channel: Channel<String>) = MyPodLogs.list(client, name, channel)
 
-    fun listRepos() = Repos().getPods(client)
+    fun listRepos() = Repos().getRepoPods(client)
 
-    fun syncRepos() = Repos().syncRepos(client)
+    fun syncConfig() {
+        Repos().syncRepos(client)
+        Repos().syncLocalCache(client)
+    }
 
     fun listTestJobs() = client.pods().list().items.filter { it.metadata?.name?.startsWith("cbtt-test") == true }
 

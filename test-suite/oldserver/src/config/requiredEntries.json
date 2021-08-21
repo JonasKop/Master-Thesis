@@ -1,0 +1,10 @@
+[
+  "workdir",
+  "tests.[].name",
+  "tests.[].repo",
+  "tests.[].dir",
+  "services.[].name",
+  "services.[].image",
+  "services.[].cmd",
+  "services.[].args.[]"
+]

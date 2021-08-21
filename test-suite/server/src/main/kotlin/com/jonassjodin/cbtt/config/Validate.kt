@@ -30,7 +30,17 @@ fun validateBuildTool(tool: BuildTool) {
     if (tool.name.isEmpty()) throw InvalidConfigException("buildTools[].name must be set")
     if (tool.image.isEmpty()) throw InvalidConfigException("buildTools[].image must be set")
     if (tool.command.setup.isEmpty()) throw InvalidConfigException("buildTools[].command.setup must be set")
-    if (tool.command.cache?.push == null && tool.command.cache?.noPush == null && tool.command.noCache?.push == null && tool.command.noCache?.noPush == null) {
+    if (tool.command.remoteCache?.push == null &&
+        tool.command.remoteCache?.noPush == null &&
+        tool.command.localCache?.push == null &&
+        tool.command.localCache?.noPush == null &&
+        tool.command.noCache?.push == null &&
+        tool.command.noCache?.noPush == null
+    ) {
         throw InvalidConfigException("one of buildTools[].command.(cache.push, cache.noPush, noCache.push, noCache.noPush")
+    }
+
+    if ((tool.command.localCache?.noPush != null || tool.command.localCache?.push != null) && tool.localCacheDir == null) {
+        throw InvalidConfigException("since local cached is used, buildTools[].localCacheDir must be set")
     }
 }

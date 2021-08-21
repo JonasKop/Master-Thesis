@@ -1,0 +1,70 @@
+workdir: /project
+repositories:
+  - name: copy
+    url: https://github.com/JonasKop/Registry-Cleaner
+    dir: ./
+buildTools:
+  - name: kaniko
+    image: gcr.io/kaniko-project/executor:debug
+    securityContext:
+      userID: 1
+    command:
+      - /kaniko/executor
+      - --no-push
+      - --context
+      - ${workdir}
+      - --dockerfile
+      - ${workdir}/Dockerfile
+  #      - "--cache-repo={{workdir}}/{{-2.name}}"
+  #      - "--cache=true"
+  - name: buildah
+    image: quay.io/buildah/stable
+    securityContext:
+      privileged: true
+    command:
+      - /bin/buildah
+      - bud
+      - -t
+      - $name
+      - ${workdir}
+  #      - buildah push
+  - name: buildkit
+    image: gcr.io/kaniko-project/executor:debug
+    securityContext:
+      securityAnnotations:
+        container.apparmor.security.beta.kubernetes.io/buildkitd: unconfined
+        container.seccomp.security.alpha.kubernetes.io/buildkitd: unconfined
+      userID: 1000
+    command:
+      - /usr/bin/buildctl-daemonless.sh
+      - build
+      - --frontend
+      - dockerfile.v0
+      - --local
+      - context=${workdir}
+      - --local
+      - dockerfile=${workdir}
+  - name: img
+    image: r.j3ss.co/img
+    securityAnnotations:
+      container.apparmor.security.beta.kubernetes.io/img: unconfined
+      container.seccomp.security.alpha.kubernetes.io/img: unconfined
+    userID: 1000
+    command:
+      - /usr/bin/img
+      - build
+      - -t
+      - ${name}
+      - ${workdir}
+#  - name: jib
+#      image: gcr.io/kaniko-project/executor:debug
+#      securityAnnotations:
+#        container.apparmor.security.beta.kubernetes.io/img: unconfined
+#        container.seccomp.security.alpha.kubernetes.io/img: unconfined
+#      command:
+#        - /kaniko/executor
+#        - --no-push
+#        - --context
+#        - {{workdir}}
+#        - --dockerfile
+#        - {{workdir}}/Dockerfile

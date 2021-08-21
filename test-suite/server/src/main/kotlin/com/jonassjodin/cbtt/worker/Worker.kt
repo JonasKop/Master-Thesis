@@ -30,23 +30,38 @@ object Worker {
 
     fun addJob(job: Job) = queue.put(job)
 
-    private fun podIsNotCompleted(pod: Pod): Boolean =
-        pod.status?.containerStatuses?.any { it.state == null || it.state?.terminated == null } ?: true
+//    private fun podIsNotCompleted(pod: Pod): Boolean =
+//        pod.status?.containerStatuses?.any { it.state == null || it.state?.terminated == null } ?: true
+
+    private fun isNotTerminated(pod: Pod): Boolean {
+        val isTerminated = pod.status?.containerStatuses?.any { it.state?.terminated != null } ?: false
+        return !isTerminated
+    }
+
 
     private fun waitForAllCompleted() {
         while (true) {
-            val notAllCompleted = K8s.listTestJobs().any(::podIsNotCompleted)
-            if (notAllCompleted) {
-                Thread.sleep(1000)
-                continue
+            println("during")
+            val jobs = K8s.listTestJobs()
+
+            if (jobs.isNotEmpty()) {
+                val notAllCompleted = jobs.any(::isNotTerminated)
+
+                if (notAllCompleted) {
+                    Thread.sleep(1000)
+                    continue
+                }
             }
+
             break
         }
     }
 
     private fun running() {
         while (true) {
+            println("before")
             waitForAllCompleted()
+            println("after")
             val job = queue.take()
             K8s.runJob(job)
         }

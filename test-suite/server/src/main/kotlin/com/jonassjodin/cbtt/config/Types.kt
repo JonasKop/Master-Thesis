@@ -6,16 +6,17 @@ import kotlinx.serialization.Serializable
 data class Repository(
     val name: String,
     val url: String,
-    val dir: String,
-    val jib: Boolean = false,
+    val dir: String = "/",
+    val tags: List<String>? = null,
 )
 
 @Serializable
 data class SecurityContext(
+    val privileged: Boolean? = null,
+    val runAsUser: Long? = null,
+
     val seccomp: String? = null,
     val apparmor: String? = null,
-    val privileged: Boolean? = null,
-    val userID: Int? = null
 )
 
 @Serializable
@@ -27,7 +28,8 @@ data class Command(
 @Serializable
 data class CommandTypes(
     val setup: String,
-    val cache: Command? = null,
+    val localCache: Command? = null,
+    val remoteCache: Command? = null,
     val noCache: Command? = null
 )
 
@@ -35,9 +37,11 @@ data class CommandTypes(
 data class BuildTool(
     val name: String,
     val image: String,
+    val tag: String? = null,
     val command: CommandTypes,
     val securityContext: SecurityContext? = null,
-    val env: Map<String, String>? = null
+    val env: Map<String, String>? = null,
+    val localCacheDir: String? = null
 )
 
 @Serializable

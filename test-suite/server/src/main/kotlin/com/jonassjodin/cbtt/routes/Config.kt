@@ -29,7 +29,7 @@ fun Route.configRouting() {
             try {
                 val configFile = call.receive<ConfigFile>()
                 saveConfig(configFile.config)
-                K8s.syncRepos()
+                K8s.syncConfig()
                 call.respond(Ok(true))
             } catch (e: Exception) {
                 println(e)

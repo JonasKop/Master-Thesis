@@ -1,5 +1,6 @@
 package com.jonassjodin.cbtt.k8s.repos
 
+import LocalCache
 import com.jonassjodin.cbtt.config.Repository
 import com.jonassjodin.cbtt.config.readConfig
 import io.fabric8.kubernetes.api.model.PersistentVolumeClaim
@@ -11,11 +12,10 @@ class Repos {
     private val config = readConfig()
 
     fun syncRepos(client: KubernetesClient) {
-        val pvcs = getPVCs(client)
-        val jobs = getPods(client)
+        val pvcs = getRepoPVCs(client)
+        val jobs = getRepoPods(client)
 
         val pvcsInfo = pvcs.map { nameAndChecksum(it) }
-        println(pvcsInfo)
         val jobsInfo = jobs.map { nameAndChecksum(it) }
 
         val newPvcs = config.repositories
@@ -30,12 +30,32 @@ class Repos {
         config.repositories.forEach { createRepo(it, client) }
     }
 
-    private fun getPVCs(client: KubernetesClient): List<PersistentVolumeClaim> {
+    fun syncLocalCache(client: KubernetesClient) {
+        val new = config.buildTools.filter { it.localCacheDir != null }.map { it.name }
+        val old = getCachePVCs(client).map { it.metadata.name }
+
+        if (!old.containsAll(new) || !new.containsAll(old)) {
+            getCachePVCs(client).forEach { deletePVC(it.metadata.name, client) }
+
+            config.buildTools.filter { it.localCacheDir != null }.forEach {
+                client.persistentVolumeClaims().create(LocalCache(it))
+            }
+        }
+    }
+
+
+    private fun getCachePVCs(client: KubernetesClient): List<PersistentVolumeClaim> {
+        val pvcs = client.persistentVolumeClaims().list()
+
+        return pvcs.items.filter { it.metadata?.name?.startsWith("cbtt-repo") == false }
+    }
+
+    private fun getRepoPVCs(client: KubernetesClient): List<PersistentVolumeClaim> {
         val pvcs = client.persistentVolumeClaims().list()
         return pvcs.items.filter { it.metadata?.name?.startsWith("cbtt-repo") == true }
     }
 
-    fun getPods(client: KubernetesClient): List<Pod> {
+    fun getRepoPods(client: KubernetesClient): List<Pod> {
         val pods = client.pods().list()
         return pods.items.filter { it.metadata?.name?.startsWith("cbtt-repo") == true }
     }

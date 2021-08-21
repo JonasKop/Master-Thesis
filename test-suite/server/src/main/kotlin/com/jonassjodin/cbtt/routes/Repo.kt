@@ -2,6 +2,7 @@ package com.jonassjodin.cbtt.routes
 
 import com.jonassjodin.cbtt.k8s.K8s
 import com.jonassjodin.cbtt.lib.checkHTTPAuth
+import com.jonassjodin.cbtt.models.Ok
 import io.ktor.application.*
 import io.ktor.http.*
 import io.ktor.response.*
@@ -18,6 +19,7 @@ fun Route.repoRouting() {
             )
             K8s.deletePod(name)
             K8s.deletePVC(name)
+            call.respond(Ok(true))
         }
     }
 }

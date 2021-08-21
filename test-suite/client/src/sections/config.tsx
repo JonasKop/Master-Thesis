@@ -2,32 +2,25 @@ import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-yaml';
 import 'ace-builds/src-noconflict/theme-monokai';
 import 'ace-builds/src-noconflict/ext-language_tools';
-import styled from 'styled-components';
 import { Config as ConfigType } from '../lib/types';
-import { Button, useBoolean, useToast } from '@chakra-ui/react';
+import { Button, Heading, useBoolean, useToast } from '@chakra-ui/react';
 import { useContext, useEffect, useState } from 'react';
 import yaml from 'js-yaml';
 import { appContext } from '../lib/queue';
 import { getConfig, putConfig } from '../lib/api';
-
-const Container = styled.div`
-  height: 100%;
-  width: 100%;
-  display: grid;
-  grid-template-rows: 1fr min-content;
-  grid-gap: 10px;
-  justify-items: center;
-`;
+import Area from '../components/area';
+import { colors } from '../lib/style';
 
 function Config() {
   const toast = useToast();
-  const { config, configFile, setConfigFile, setConfig } = useContext(appContext);
+  const { configFile, setConfigFile, setConfig } = useContext(appContext);
   const [value, setValue] = useState(configFile);
   const [isLoading, { on, off }] = useBoolean(false);
 
   useEffect(() => {
     getConfig();
   }, []);
+
   async function handleClick() {
     on();
     const status = await putConfig(value);
@@ -51,7 +44,17 @@ function Config() {
   }
 
   return (
-    <Container>
+    <Area
+      height="100%"
+      width="100%"
+      display="grid"
+      gridTemplateRows="min-content 1fr min-content"
+      gridGap="10px"
+      justifyItems="center"
+    >
+      <Heading fontSize="xl" justifySelf="flex-start">
+        Configuration
+      </Heading>
       <AceEditor
         placeholder="Placeholder Text"
         mode="yaml"
@@ -74,10 +77,10 @@ function Config() {
           tabSize: 2,
         }}
       />
-      <Button colorScheme="blue" isLoading={isLoading} onClick={handleClick}>
+      <Button colorScheme="cbtt" color={colors.accent} isLoading={isLoading} onClick={handleClick}>
         Save Config
       </Button>
-    </Container>
+    </Area>
   );
 }
 

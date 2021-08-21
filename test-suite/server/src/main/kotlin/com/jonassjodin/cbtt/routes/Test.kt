@@ -32,7 +32,7 @@ fun Route.testRouting() {
                     return@post
                 }
 
-                val job = Job(repo, buildTool, incomingJob.cache, incomingJob.push)
+                val job = Job(repo, buildTool, incomingJob.localCache, incomingJob.remoteCache, incomingJob.push)
                 Worker.addJob(job)
                 call.respond(Worker.getQueue())
             } catch (e: Exception) {

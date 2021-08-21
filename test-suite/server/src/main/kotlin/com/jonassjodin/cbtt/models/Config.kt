@@ -16,7 +16,13 @@ data class Pod(val name: String, val status: String)
 data class ConfigFile(val config: String)
 
 @Serializable
-data class IncomingJob(val repoName: String, val buildToolName: String, val cache: Boolean, val push: Boolean)
+data class IncomingJob(
+    val repoName: String,
+    val buildToolName: String,
+    val localCache: Boolean,
+    val remoteCache: Boolean,
+    val push: Boolean
+)
 
 @Serializable
 data class Credentials(val username: String, val password: String)

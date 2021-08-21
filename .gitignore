@@ -1,12 +1,21 @@
+# MacOS
 .DS_Store
-node_modules/
+
+# Misc 
 tools/
-build/
-.gradle/
+.env
+
+# Jetbrains
 .idea/
+*.iml
+
+# Gradle
 gradle/
 gradlew
 gradlew.bat
-*.iml
+build/
+.gradle/
+
+# Terraform
 terraform.tfstate*
-.env
+.terraform*

@@ -46,6 +46,7 @@ class RepoPod(repo: Repository) : Pod() {
                         newVolumeMount {
                             mountPath = config.workdir
                             name = repoName
+                            subPath = "repo"
                             readOnly = false
                         }
                     )
